@@ -1,0 +1,20 @@
+{% load static %}
+<head>
+	<link rel="stylesheet" href="{% static 'Core/loading/loading.css' %}">
+	<script src="{% static 'Core/loading/loading.js' %}" defer></script>
+</head>
+<div class="terminal glitch">
+	<div class="scanline"></div>
+	<p class="spinner">[/]</p>
+	<div class="hydra">
+		<div class="hydra_rebooting">
+			<p>&lt; LOADING REBOOTING &gt;</p>
+			<p class="text--sm">HYDRA VER 2.1 SYS RECOVERY</p>
+			<p class="text--sm">PROCESS: <span class="process-amount">0</span>%</p>
+			<p class="loading-bar"></p>
+		</div>
+		<div class="hydra_reboot_success hidden">
+			<p>LOADING SUCCESSFUL</p>
+		</div>
+	</div>
+</div>

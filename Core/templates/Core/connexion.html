@@ -1,0 +1,67 @@
+{% load static %}
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>cyberpunk - terminal</title>
+  <link rel="stylesheet" href="{% static 'Core/connexion/connexion.css' %}">
+</head>
+
+<body class="">
+  <div class="container on">
+    <div class="screen">
+      <h3 class="title">
+        CONNECTION ESTABLISHED
+      </h3>
+      <div class="box--outer">
+        <div class="box">
+          <div class="box--inner">
+            <div class="content">
+              <div class="holder">
+                <b>Welcome to YPERITE INTRANET </b> Please use your VIP user credentials.
+                <br><br>
+
+                <!-- LOGIN (readonly) -->
+                <div class="row">
+                  <div class="col col__left label">
+                    Login
+                  </div>
+                </div>
+
+                <!-- FORM DJANGO -->
+                <form method="post" action="">
+                  {% csrf_token %}
+
+                  <div class="row">
+                    <div class="col col__left label">Username</div>
+                    <div class="col col__center">
+                      {{ form.Username }}
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col col__left label">Password</div>
+                    <div class="col col__center">
+                      {{ form.Password }}
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <button type="submit" id="submit" name="submit">[login]</button>
+                  </div>
+
+                </form>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+</html>
