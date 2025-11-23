@@ -71,7 +71,9 @@ WSGI_APPLICATION = 'Yperite.wsgi.application'
 
 DATABASES = {
     "default": dj_database_url.config(
-        default="postgres://paul:Meg%40C%40arlie153@yperite.railway.internal:5432/Yperite_dev"
+        default=os.environ.get("DATABASE_URL"),
+        conn_max_age=600,
+        ssl_require=True  # <- obligatoire sur Railway
     )
 }
 
