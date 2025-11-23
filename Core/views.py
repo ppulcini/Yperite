@@ -49,7 +49,6 @@ def create_personnage(request):
         background = data.get("background", "")
         competences_ids = data.get("competences", [])
         prenom = data.get("prenom", "")
-
         equipe_id = data.get("classe")
         try:
             equipe_instance = EquipesClass.objects.get(name=equipe_id)
@@ -65,10 +64,9 @@ def create_personnage(request):
         # Ajouter les compétences
         competences = Competence.objects.filter(id__in=competences_ids)
         personnage.competences.set(competences)
-        return render(request, "Core/home.html")
+        return JsonResponse({"success": True, "id": personnage.id})
     else:
         return JsonResponse({"error": "Méthode non autorisée"}, status=405)
-
 
 def activation(request):
     return render(request, "Core/activation.html")
@@ -82,3 +80,7 @@ def competences_list(request):
 def classe_list(request):
     classes = list(EquipesClass.objects.values("name"))
     return JsonResponse(classes, safe=False)
+
+def personnages_list(request):
+    personnages = list(Personnage.objects.values("id", "nom", "prenom", "equipe__name"))
+    return JsonResponse(personnages, safe=False)

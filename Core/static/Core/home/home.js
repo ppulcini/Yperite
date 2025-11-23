@@ -277,15 +277,16 @@ function MakeIcon(svg) {
   );
 }
 
-const FIXTURES = {
-  Equipes: [
-    { id: "5ba5", name: "Paul",isPrivate: true},
-    { id: "4f22", name: "Kéké",isPrivate: true},
-    { id: "fee9", name: "PNJ-1" },
-    { id: "a0cc", name: "PNJ-2" },
-    { id: "dee3", name: "SQUAD",}
-  ],
-};
+let FIXTURES = { Equipes: [] };
+
+fetch("/api/personnages/")
+  .then((res) => res.json())
+  .then((data) => {
+    FIXTURES = data;
+    console.log(FIXTURES);
+    // tu peux maintenant utiliser FIXTURES.Equipes
+  })
+  .catch((err) => console.error(err));
 
 function NodeBox({ x, y, name }) {
   const textRef = preactHooks.useRef(null);
