@@ -20,13 +20,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-$m(eztk!5!(v6$)mu#1b90*s1r_+5493lc*c5!=w&4z_pj=)st'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-
-ALLOWED_HOSTS = ["*"]
+SECRET_KEY = os.environ["SECRET_KEY"]
+DEBUG = os.environ.get("DEBUG", "False") == "True"
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(",")
 
 
 # Application definition
@@ -84,7 +80,7 @@ DATABASES = {
         'USER': os.environ["PGUSER"],
         'PASSWORD': os.environ["PGPASSWORD"],
         'HOST': os.environ["PGHOST"],
-        'PORT': os.environ["PGPORT"],
+        'PORT': os.environ.get("PGPORT", "5432"),
     }
 }
 
