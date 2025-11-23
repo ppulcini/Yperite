@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from .models import Competence, Personnage, EquipesClass
 from .forms import connexionForm
 
+@csrf_exempt
 def connexion(request):
     if request.method == "POST":
         form = connexionForm(request.POST)

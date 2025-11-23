@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-SECRET_KEY = os.environ["SECRET_KEY"]
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-$m(eztk!5!(v6$)mu#1b90*s1r_+5493lc*c5!=w&4z_pj=)st")
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(",")
 
@@ -69,7 +69,9 @@ TEMPLATES = [
 WSGI_APPLICATION = 'Yperite.wsgi.application'
 
 DATABASES = {
-    "default": dj_database_url.config(default=os.getenv("DATABASE_URL"))
+    "default": dj_database_url.config(
+        default="postgres://paul:Meg%40C%40arlie153@yperite.railway.internal:5432/Yperite_dev"
+    )
 }
 
 # Password validation
