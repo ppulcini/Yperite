@@ -7,4 +7,4 @@ python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 
 # Démarrer l'application avec Gunicorn (port fourni par Railway)
-gunicorn Yperite.wsgi:application --bind 0.0.0.0:$PORT
+gunicorn Yperite.wsgi:application --bind 0.0.0.0:$PORT --timeout 120
