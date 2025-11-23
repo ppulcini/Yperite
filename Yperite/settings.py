@@ -22,8 +22,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-$m(eztk!5!(v6$)mu#1b90*s1r_+5493lc*c5!=w&4z_pj=)st")
-DEBUG = os.environ.get("DEBUG", "False") == "True"
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(",")
+# DEBUG = os.environ.get("DEBUG", "False") == "True"
+DEBUG = True
+ALLOWED_HOSTS = ["yperite-production.up.railway.app"]
 
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = False
