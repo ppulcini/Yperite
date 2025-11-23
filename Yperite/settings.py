@@ -67,12 +67,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Yperite.wsgi.application'
 
-os.environ.setdefault("PGHOST", "127.0.0.1")
-os.environ.setdefault("PGPORT", "5433")
-os.environ.setdefault("PGUSER", "paul")
-os.environ.setdefault("PGPASSWORD", "Meg@C@arlie153")
-os.environ.setdefault("PGDATABASE", "Yperite_dev")
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
