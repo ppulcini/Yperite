@@ -1,5 +1,5 @@
 """
-Django settings for Yperite project (Railway-ready).
+Django settings for Yperite project — production-ready for Railway.
 """
 
 import os
@@ -7,7 +7,7 @@ from pathlib import Path
 import dj_database_url
 
 # --------------------------
-# Build paths
+# Base directory
 # --------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -15,15 +15,31 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Security
 # --------------------------
 SECRET_KEY = os.environ.get(
-    "SECRET_KEY", 
-    "django-insecure-$m(eztk!5!(v6$)mu#1b90*s1r_+5493lc*c5!=w&4z_pj=)st"
+    "SECRET_KEY",
+    "django-insecure-dev-key"       # fallback pour local seulement
 )
+
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = ["yperite-production.up.railway.app"]  # ton domaine Railway
+# Domain Railway auto
+RAILWAY_DOMAIN = os.environ.get("RAILWAY_PUBLIC_DOMAIN")
+
+ALLOWED_HOSTS = [
+    RAILWAY_DOMAIN,
+    "localhost",
+    "127.0.0.1"
+]
+
+# CSRF (OBLIGATOIRE sur Railway)
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{RAILWAY_DOMAIN}",
+]
+
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
 
 # --------------------------
-# Application definition
+# Applications
 # --------------------------
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -35,9 +51,12 @@ INSTALLED_APPS = [
     "Core",
 ]
 
+# --------------------------
+# Middleware
+# --------------------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # WhiteNoise pour fichiers statiques
+    "whitenoise.middleware.WhiteNoiseMiddleware",   # static files en prod
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -48,6 +67,9 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "Yperite.urls"
 
+# --------------------------
+# Templates
+# --------------------------
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -67,21 +89,18 @@ TEMPLATES = [
 WSGI_APPLICATION = "Yperite.wsgi.application"
 
 # --------------------------
-# Database
+# Database (Railway + Local)
 # --------------------------
 DATABASES = {
     "default": dj_database_url.config(
-        default=os.environ.get(
-            "DATABASE_URL",
-            "postgres://paul:Meg%40C%40arlie153@yperite-production.up.railway.app:5432/Yperite_dev"
-        ),
+        default=os.environ.get("DATABASE_URL"),
         conn_max_age=600,
-        ssl_require=True
+        ssl_require=True,
     )
 }
 
 # --------------------------
-# Password validation
+# Password validators
 # --------------------------
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -105,13 +124,6 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
-# --------------------------
-# CSRF & Session
-# --------------------------
-CSRF_TRUSTED_ORIGINS = ["https://yperite-production.up.railway.app"]
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
 
 # --------------------------
 # Default primary key field type
