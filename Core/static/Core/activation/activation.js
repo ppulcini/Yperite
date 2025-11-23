@@ -143,7 +143,7 @@ function CreateCharacterPage() {
   // --- handleSubmit qui crée réellement le personnage ---
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     const payload = {
       name,
       age,
@@ -152,15 +152,23 @@ function CreateCharacterPage() {
       classe,
       competences: competencesSelected,
     };
-
+  
     try {
       const res = await fetch("/api/personnage/create/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
-      const data = await res.json();
+  
+      if (!res.ok) {
+        // La requête a échoué côté serveur (4xx / 5xx)
+        const errorData = await res.text(); // ou res.json() si tu veux
+        console.error("Erreur serveur:", errorData);
+        alert("Erreur lors de la création du personnage");
+        return;
+      }
+  
+      const data = await res.json(); // Maintenant safe
       if (data.success) {
         alert(`Personnage créé ! ID: ${data.id}`);
         // Reset du formulaire
@@ -175,7 +183,7 @@ function CreateCharacterPage() {
         console.log(data);
       }
     } catch (error) {
-      console.error(error);
+      console.error("Erreur réseau:", error);
       alert("Erreur réseau");
     }
   };
@@ -323,6 +331,7 @@ style.innerHTML = `
 .competence-container {
   font-family: sans-serif;
   color: #eee;
+  padding: 0.5rem;
 }
 
 .type-competence {
@@ -331,8 +340,8 @@ style.innerHTML = `
 
 .domaines-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 0.4rem;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.5rem;
 }
 
 .domaine-block {
@@ -340,11 +349,11 @@ style.innerHTML = `
   flex-direction: column;
   padding: 0.3rem;
   border-right: 1px solid #555; /* séparateur vertical */
-  border-bottom: 1px solid #555; /* séparateur horizontal pour multi-lignes */
+  border-bottom: 1px solid #555; /* séparateur horizontal */
 }
 
-.domaine-block:nth-child(5n) {
-  border-right: none; /* enlever le trait du dernier élément de la ligne */
+.domaine-block:last-child {
+  border-right: none;
 }
 
 .counter {
@@ -363,6 +372,7 @@ style.innerHTML = `
   font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  margin-bottom: 0.25rem;
 }
 
 .button:hover {
@@ -377,9 +387,39 @@ style.innerHTML = `
   border-color: var(--colors-primary--500);
 }
 
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* --- Media queries pour petits écrans --- */
+@media (max-width: 1200px) {
+  .domaines-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .domaines-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .domaines-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  }
+  
+  .button {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.4rem;
+  }
+}
+
 .submit-row {
   justify-content: flex-end;
 }
+
 
 `;
 document.head.appendChild(style);
