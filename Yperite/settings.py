@@ -25,6 +25,9 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-$m(eztk!5!(v6$)mu#1b9
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(",")
 
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
+
 
 # Application definition
 
@@ -73,7 +76,7 @@ DATABASES = {
     "default": dj_database_url.config(
         default=os.environ.get("DATABASE_URL"),
         conn_max_age=600,
-        ssl_require=True  # <- obligatoire sur Railway
+        ssl_require=True
     )
 }
 
