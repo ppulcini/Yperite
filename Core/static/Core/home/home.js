@@ -15,66 +15,80 @@ function App() {
   const [selectedMember, setSelectedMember] = useState(null);
   const [orgRoot, setOrgRoot] = useState(null);
 
-  useEffect(function () {
+  useEffect(() => {
     // Charge équipes + personnages
     Promise.all([
-      fetch("/api/equipes/").then(function (r) { return r.json(); }),
-      fetch("/api/personnages/").then(function (r) { return r.json(); })
-    ]).then(function (results) {
-      var equipesData = results[0];
-      var membresData = results[1];
-
-      // Normaliser équipes : id en string, children = []
-      var equipes = equipesData.map(function (e, i) {
-        return {
-          id: String(e.id ? e.id : "team-" + i),
-          name: e.name ? e.name : ("Equipe " + (i+1)),
-          children: []
+      fetch("/api/equipes/").then(r => r.json()),
+      fetch("/api/personnages/").then(r => r.json())
+    ]).then(([equipesData, membresData]) => {
+  
+      // 1️⃣ Normaliser équipes : id en string, children = []
+      const equipes = equipesData.map((e, i) => ({
+        id: String(e.id != null ? e.id : "team-" + i),
+        name: e.name != null ? e.name : `Equipe ${i + 1}`,
+        children: []
+      }));
+  
+      // 2️⃣ Construire map par id
+      const teamMap = {};
+      equipes.forEach(t => { teamMap[t.id] = t; });
+  
+      // 3️⃣ Ajouter membres dans leur équipe
+      membresData.forEach(m => {
+        const equipeId = m.equipe_id != null ? String(m.equipe_id) : (m.equipe ? String(m.equipe) : null);
+  
+        const memberObj = {
+          id: "m-" + m.id,
+          name: m.prenom || m.nom || "Pers " + m.id,
+          grade: m.grade || m.Niveau || "Soldat",
+          ...m // tu peux ajouter d'autres infos si besoin
         };
-      });
-
-      // Construire map par id
-      var teamMap = {};
-      equipes.forEach(function (t) { teamMap[t.id] = t; });
-
-      // Ajouter membres dans leur équipe (on suppose maintenant que django renvoie equipe_id)
-      membresData.forEach(function (m) {
-        var equipeId = (m.equipe_id !== undefined && m.equipe_id !== null) ? String(m.equipe_id) : (m.equipe ? String(m.equipe) : null);
+  
         if (equipeId && teamMap[equipeId]) {
-          teamMap[equipeId].children.push({
-            id: "m-" + m.id,
-            name: (m.prenom ? m.prenom : "Pers " + m.id)
-          });
+          teamMap[equipeId].children.push(memberObj);
         }
       });
-
-      // Préparer racine unique (évite superposition)
-      var root = {
-        id: "root",
-        name: "Organisation",
-        children: Object.keys(teamMap).map(function (k) { return teamMap[k]; })
-      };
-
-      // Liste de membres complète pour le panneau gauche / infos
-      var membresList = membresData.map(function (m) {
-        return {
-          id: m.id,
-          nom: m.nom,
-          prenom: m.prenom,
-          age: m.age,
-          equipe: m.equipe,
-          equipe_id: m.equipe_id,
-          background: m.background,
-          competences: m.competences || []
-        };
+  
+      // 4️⃣ Mettre le Chef en premier dans chaque équipe
+      Object.values(teamMap).forEach(team => {
+        if (team.children && team.children.length > 1) {
+          const chefIndex = team.children.findIndex(m => m.grade === "Chef");
+          if (chefIndex > 0) {
+            const [chef] = team.children.splice(chefIndex, 1);
+            team.children.unshift(chef);
+          }
+        }
       });
+  
+      // 5️⃣ Récupérer le Commandant (sans équipe)
+      const commandant = membresData.find(m => m.grade === "Commandant" || m.Niveau === "Commandant");
+      const rootChildren = Object.values(teamMap);
 
+  
+      // 6️⃣ Préparer racine unique
+      const root = {
+        id: "root",
+        name: commandant ? commandant.prenom + " " + commandant.nom : "Commandement",
+        children: rootChildren
+      };
+  
+      // 7️⃣ Liste complète de membres pour le panneau gauche
+      const membresList = membresData.map(m => ({
+        id: m.id,
+        nom: m.nom,
+        prenom: m.prenom,
+        age: m.age,
+        equipe: m.equipe,
+        equipe_id: m.equipe_id,
+        background: m.background,
+        competences: m.competences || [],
+        grade: m.grade || m.Niveau
+      }));
+  
       setOrgRoot(root);
       setMembres(membresList);
-
-    }).catch(function (err) {
-      console.error("Erreur fetch équipes/membres :", err);
-    });
+  
+    }).catch(err => console.error("Erreur fetch équipes/membres :", err));
   }, []);
 
 
@@ -139,7 +153,7 @@ function App() {
                     boxSizing: "border-box"
                   }}
                 >
-                  {orgRoot ? <OrgChart data={orgRoot} /> : <div>Chargement...</div>}
+                  {orgRoot ? <OrgChartWithLegend data={orgRoot} /> : <div>Chargement...</div>}
                 </div>
               </Pad>
 
@@ -275,6 +289,73 @@ function MakeIcon(svg) {
   };
 }
 
+function ColorLegend() {
+  const legendItems = [
+    { color: "#fed33f", label: "Commandement / Commandant" },
+    { color: "#e8615a", label: "Équipe" },
+    { color: "#2ecc71", label: "Chef d'équipe" },
+    { color: "#2c3e50", label: "Soldat" }
+  ];
+
+  return (
+    <div style={{
+      display: "flex",
+      flexDirection: "column",
+      gap: "10px",
+      marginLeft: "20px",
+      backgroundColor: "transparent" // ← fond transparent
+    }}>
+      {legendItems.map((item, i) => (
+        <div key={i} style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+          <div style={{
+            width: "20px",
+            height: "20px",
+            backgroundColor: item.color,
+            borderRadius: "4px",
+            border: "1px solid #000"
+          }}></div>
+          <span style={{ fontSize: "14px" }}>{item.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function OrgChartWithLegend({ data, containerWidth = 800 }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+      {/* Conteneur scroll horizontal */}
+      <div
+        style={{
+          overflowX: "auto",
+          overflowY: "hidden",
+          width: "100%",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",   // horizontal
+            alignItems: "flex-start",
+            gap: "20px",
+            minWidth: containerWidth,
+          }}
+        >
+          {/* Légende à gauche */}
+          <div style={{ flexShrink: 0 }}>
+            <ColorLegend />
+          </div>
+
+          {/* Diagramme */}
+          <div style={{ flexShrink: 0 }}>
+            <OrgChart data={data} containerWidth={containerWidth} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // === ORGCHART SIMPLE (colonnes d'équipes) ===
 function NodeBox({ x, y, name, width, height, fill, stroke }) {
   const textX = x + width / 6; // centre horizontal exact
@@ -302,65 +383,178 @@ function NodeBox({ x, y, name, width, height, fill, stroke }) {
 }
 
 function OrgChart(props) {
-  var data = props.data || { id: "root", name: "Organisation", children: [] };
+  var data = props.data || { id: "root", name: "Commandement", children: [] };
   var positions = [];
   var teams = data.children || [];
 
+  // Hauteurs / espacements
+  var boxH = 60;
+  var vSpace = 30;
+  var hSpace = 220;
+  console.log(JSON.stringify(teams, null, 2));
+  // Chercher le membre qui est Commandant
+  var teams = props.data.children || [];
+  var commandant = teams
+    .flatMap(team => team.children || [])
+    .find(member => member.grade === "Commandant");
+
+  // Ajouter la racine "Commandement"
+  positions.push({
+    id: data.id,
+    name: commandant ? `Commandement\n${commandant.name}` : data.name,
+    depth: 0, 
+    xOffset: (teams.length - 1) / 2, // centre la racine au-dessus des équipes
+    isRoot: true
+  });
+
+  // Ajouter les équipes et leurs membres
   for (var ti = 0; ti < teams.length; ti++) {
     var team = teams[ti];
-    positions.push({ id: team.id, name: team.name, depth: 0, xOffset: ti, isTeam: true });
+
+    // Noeud équipe (niveau 0)
+    positions.push({
+      id: team.id,
+      name: team.name,
+      depth: 1,
+      xOffset: ti,
+      isTeam: true
+    });
+
+    // Membres (niveau 1 et plus)
     var children = team.children || [];
     for (var ci = 0; ci < children.length; ci++) {
       var member = children[ci];
-      positions.push({ id: member.id, name: member.name, depth: ci + 1, xOffset: ti, isTeam: false });
+      positions.push({
+        id: member.id,
+        name: member.name + " - " + member.prenom,
+        grade: member.grade,
+        depth: ci + 2,
+        xOffset: ti,
+        isTeam: false
+      });
     }
   }
 
-  var boxH = 60;
-  var vSpace = 20;
-  var hSpace = 220;
+  // Calcul Taille SVG
+  var rows = 2;
+  positions.forEach(function(p) {
+    if (p.depth + 1 > rows) rows = p.depth + 1;
+  });
 
-  // dimension du SVG
+  var svgHeight = Math.max(300, rows * (boxH + vSpace) + 50);
   var columns = teams.length || 1;
-  var rows = 1;
-  positions.forEach(function(p){ if (p.depth + 1 > rows) rows = p.depth + 1; });
 
-  var svgHeight = Math.max(200, rows * (boxH + vSpace) + 20);
-  var totalWidth = (columns - 1) * hSpace + 140; // largeur totale du schéma (boxes + espaces)
+  // largeur min du diagramme
+  var totalWidth = (columns - 1) * hSpace + 200;
 
-  // dynamic center
-  var containerWidth = props.containerWidth || 800; // fallback si non fourni
-  var marginX = Math.max(100, (containerWidth - totalWidth) / 2);
+  var containerWidth = props.containerWidth || 800;
+  var marginX = Math.max(50, (containerWidth - totalWidth) / 2);
 
   function findPos(id) {
-    for (var i = 0; i < positions.length; i++) if (positions[i].id === id) return positions[i];
-    return null;
+    return positions.find(p => p.id === id);
   }
 
   return (
-    <svg width={Math.max(totalWidth + marginX*2, containerWidth)} height={svgHeight} style={{ display: "block" }}>
-      {/* lignes de connexion */}
-      {positions.map(function (p) {
-        if (!p.isTeam) return null;
-        var teamPos = p;
-        var teamChildren = teams[p.xOffset] && teams[p.xOffset].children ? teams[p.xOffset].children : [];
-        return teamChildren.map(function (child) {
+    <svg
+      width={Math.max(totalWidth + marginX * 2, containerWidth)}
+      height={svgHeight}
+      style={{ display: "block" }}
+    >
+      {/* ======== LIGNES Commandement → Équipes ======== */}
+      {positions.filter(p => p.isTeam).map(function(teamPos) {
+        var rootPos = positions.find(p => p.isRoot);
+        if (!rootPos) return null;
+
+        var rootX = rootPos.xOffset * hSpace + 70 + marginX;
+        var rootY = (rootPos.depth * (boxH + vSpace)) + boxH;
+
+        var teamX = teamPos.xOffset * hSpace + 70 + marginX;
+        var teamY = (teamPos.depth * (boxH + vSpace));
+
+        var d = "M" + rootX + "," + rootY
+          + " L" + rootX + "," + (rootY + 20)
+          + " L" + teamX + "," + (teamY - 20)
+          + " L" + teamX + "," + teamY;
+
+        return (
+          <path
+            key={"root-" + teamPos.id}
+            d={d}
+            stroke="#fed33f"
+            strokeWidth="2"
+            fill="none"
+          />
+        );
+      })}
+
+      {/* ======== LIGNES Équipe → Membres ======== */}
+      {positions.filter(p => p.isTeam).map(function(teamPos) {
+        var children = teams[teamPos.xOffset].children || [];
+
+        return children.map(function(child) {
           var childPos = findPos(child.id);
           if (!childPos) return null;
+
           var teamX = teamPos.xOffset * hSpace + 70 + marginX;
           var teamY = teamPos.depth * (boxH + vSpace) + boxH;
+
           var childX = childPos.xOffset * hSpace + 70 + marginX;
           var childY = childPos.depth * (boxH + vSpace);
-          var d = "M" + teamX + "," + teamY + " L" + teamX + "," + (teamY + 20) + " L" + childX + "," + (childY - 20) + " L" + childX + "," + childY;
-          return <path key={teamPos.id + "-" + child.id} d={d} stroke="#fed33f" strokeWidth="2" fill="none" />;
+
+          var d = "M" + teamX + "," + teamY
+            + " L" + teamX + "," + (teamY + 20)
+            + " L" + childX + "," + (childY - 20)
+            + " L" + childX + "," + childY;
+
+          return (
+            <path
+              key={teamPos.id + "-" + child.id}
+              d={d}
+              stroke="#fed33f"
+              strokeWidth="2"
+              fill="none"
+            />
+          );
         });
       })}
 
-      {/* noeuds */}
-      {positions.map(function (p) {
+      {/* ======== NŒUDS ======== */}
+      {positions.map(function(p) {
         var x = p.xOffset * hSpace + marginX;
         var y = p.depth * (boxH + vSpace);
-        return <NodeBox key={p.id} x={x} y={y} name={p.name} width={140} height={48} fill={p.isTeam ? "#e8615a" : "#2c3e50"} stroke={p.isTeam ? "#fed33f" : "#e8615a"} />;
+
+        // Déterminer la couleur selon le type / grade
+        let fill, stroke;
+        console.log(p); 
+        if (p.isRoot) {
+          fill = "#fed33f";   // Commandement
+          stroke = "#ffffff";
+        } else if (p.isTeam) {
+          fill = "#e8615a";   // Équipe
+          stroke = "#fed33f";
+        } else {
+          // Membre
+          if (p.grade === "Chef") {
+            fill = "#2ecc71"; // vert pour les Chefs
+            stroke = "#27ae60";
+          } else {
+            fill = "#2c3e50"; // Soldat
+            stroke = "#e8615a";
+          }
+        }
+
+        return (
+          <NodeBox
+            key={p.id}
+            x={x}
+            y={y}
+            name={p.name}
+            width={180}
+            height={60}
+            fill={fill}
+            stroke={stroke}
+          />
+        );
       })}
     </svg>
   );

@@ -141,6 +141,7 @@ function CreateCharacterPage() {
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [prenom, setPrenom] = useState("");
+  const [niveau, setNiveau] = useState(1);
   const [background, setBackground] = useState("");
   const [competencesSelected, setCompetencesSelected] = useState([]);
   const [classe, setClasse] = useState("");          // la valeur sélectionnée (ID)
@@ -163,6 +164,7 @@ function CreateCharacterPage() {
       prenom,
       background,
       classe,
+      niveau,
       competences: competencesSelected,
     };
   
@@ -188,6 +190,7 @@ function CreateCharacterPage() {
         setName("");
         setAge("");
         setPrenom("");
+        setNiveau(1);
         setBackground("");
         setClasse("");
         setCompetencesSelected([]);
@@ -267,15 +270,32 @@ function CreateCharacterPage() {
                   </div>
 
                   <div className="form-row">
-                    <label htmlFor="classe">Equipe :</label>
+                    <label htmlFor="niveau">Grade :</label>
                     <select
-                      value={classe}
-                      onInput={(e) => setClasse(e.target.value)}
+                      id="niveau"
+                      value={niveau}
+                      onInput={(e) => setNiveau(e.target.value)}
                       required
                     >
                       <option value="">-- Choisir --</option>
+                      <option value="Soldat">Soldat</option>
+                      <option value="Chef">Chef</option>
+                      <option value="Commandant">Commandant</option>
+                    </select>
+                  </div>
+
+                  <div className="form-row">
+                    <label htmlFor="classe">Équipe :</label>
+                    <select
+                      id="classe"
+                      value={classe}
+                      onInput={(e) => setClasse(e.target.value)}
+                      required={niveau !== "Commandant"} // Obligatoire sauf pour Commandant
+                      disabled={niveau === "Commandant"} // Désactivé si Commandant
+                    >
+                      <option value="">-- Choisir --</option>
                       {classesOptions.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name}</option> // <-- value = id
+                        <option key={c.id} value={c.id}>{c.name}</option>
                       ))}
                     </select>
                   </div>

@@ -51,15 +51,17 @@ def create_personnage(request):
         competences_ids = data.get("competences", [])
         prenom = data.get("prenom", "")
         equipe_id = data.get("classe")
+        grade = data.get("niveau", "Soldat")
         try:
             equipe_instance = EquipesClass.objects.get(name=equipe_id)
         except EquipesClass.DoesNotExist:
-            return JsonResponse({"error": "Équipe invalide"}, status=400)
+            equipe_instance = None
         personnage = Personnage.objects.create(
             nom=name,
             prenom=prenom,
             age=age,
             equipe=equipe_instance,
+            grade=grade,
             background=background
         )
         # Ajouter les compétences
@@ -89,13 +91,20 @@ def equipe_list(request):
 def personnages(request):
     personnages = []
     for p in Personnage.objects.all():
+        if p.equipe is None:
+            equipe_name = 'Commandant'
+            equipe_id = 0
+        else:
+            equipe_name = p.equipe.name
+            equipe_id = p.equipe.id
         personnages.append({
             "id": p.id,
             "nom": p.nom,
             "prenom": p.prenom,
             "age": p.age,
-            "equipe": p.equipe.name,
-            "equipe_id": p.equipe.id,   # ← IMPORTANT
+            "equipe": equipe_name,
+            "equipe_id": equipe_id,   # ← IMPORTANT
+            "grade": p.grade,
             "background": p.background,
             "competences": list(p.competences.values("id", "nom"))
         })

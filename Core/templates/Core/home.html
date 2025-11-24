@@ -11,7 +11,8 @@
 
   <script>
     window.DJANGO = {
-        Username: "{{ Username }}"
+        Username: "{{ request.user.username }}",
+        is_staff: "{{ request.user.is_staff }}"
     };
   </script>
   <script type="text/babel" src="{% static 'Core/home/home.js' %}?v={{ timestamp }}"></script>

@@ -1,4 +1,11 @@
 from django.db import models
+from django.forms import ValidationError
+
+Grades = (
+    ('Soldat', 'Soldat'),
+    ('Chef', 'Chef'),
+    ('Commandant', 'Commandant'),
+)
 
 # Create your models here.
 class Personnage(models.Model):
@@ -7,8 +14,13 @@ class Personnage(models.Model):
     age = models.IntegerField()
     background = models.TextField()
 
-    equipe = models.ForeignKey('EquipesClass', on_delete=models.CASCADE)
+    grade = models.CharField(choices=Grades, default='Soldat', max_length=20)
+    equipe = models.ForeignKey('EquipesClass', on_delete=models.CASCADE, blank=True, null=True)
     competences = models.ManyToManyField('Competence', blank=True)
+
+    def clean(self):
+        if self.grade in ['Soldat', 'Chef'] and not self.equipe:
+            raise ValidationError("Un Soldat ou un Chef doit avoir une équipe.")
 
     def __str__(self):
         return self.nom + self.prenom
