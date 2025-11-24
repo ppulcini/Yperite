@@ -39,7 +39,7 @@ function App() {
   
         const memberObj = {
           id: "m-" + m.id,
-          name: m.prenom || m.nom || "Pers " + m.id,
+          name: m.prenom || "Pers " + m.id,
           grade: m.grade || m.Niveau || "Soldat",
           ...m // tu peux ajouter d'autres infos si besoin
         };
@@ -141,18 +141,7 @@ function App() {
               <Pad>
                 <TextHeading3 $as="h4">Structure de l'équipe</TextHeading3>
 
-                <div
-                  className="orgchart-wrapper"
-                  style={{
-                    width: "100%",
-                    height: "360px",
-                    overflowX: "auto",
-                    overflowY: "auto",
-                    background: "transparent",
-                    padding: 8,
-                    boxSizing: "border-box"
-                  }}
-                >
+                <div className="orgchart-wrapper">
                   {orgRoot ? <OrgChartWithLegend data={orgRoot} /> : <div>Chargement...</div>}
                 </div>
               </Pad>
@@ -426,7 +415,7 @@ function OrgChart(props) {
       var member = children[ci];
       positions.push({
         id: member.id,
-        name: member.name + " - " + member.prenom,
+        name: member.nom + " " + member.prenom,
         grade: member.grade,
         depth: ci + 2,
         xOffset: ti,
@@ -549,7 +538,7 @@ function OrgChart(props) {
             x={x}
             y={y}
             name={p.name}
-            width={180}
+            width={200}
             height={60}
             fill={fill}
             stroke={stroke}
