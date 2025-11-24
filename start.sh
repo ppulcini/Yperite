@@ -3,6 +3,9 @@
 # Appliquer les migrations
 python manage.py migrate --noinput
 
+#create user
+python create_user.py
+
 # Collecter les fichiers statiques
 python manage.py collectstatic --noinput
 
