@@ -18,6 +18,19 @@ const IconFeedAdd = MakeIcon(
   <path d="M24 10h-10v-10h-4v10h-10v4h10v10h4v-10h10z" />
 );
 
+// === UI HELPERS (Pad, NavSection, ChannelNav, etc) ===
+function NavSection(props) {
+  return (
+    <div className="nav-section">
+      <div className="nav-section__header" style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+        {props.renderTitle ? props.renderTitle({ className:"nav-section__title" }) : null}
+        {props.action ? props.action : null}
+      </div>
+      <div className="nav-section__body">{props.children}</div>
+    </div>
+  );
+}
+
 function CompetenceSelector({ selected, setSelected }) {
   const [competences, setCompetences] = useState([]);
 
@@ -66,7 +79,7 @@ function CompetenceSelector({ selected, setSelected }) {
                         key={c.id}
                         type="button"
                         onClick={() => !isDisabled && toggleCompetence(c.id)}
-                        className={`button ${selected.includes(c.id) ? "selected" : ""}`}
+                        className={`button1 ${selected.includes(c.id) ? "selected" : ""}`}
                         disabled={isDisabled}
                         style={isDisabled ? {opacity: 0.5, cursor: 'not-allowed'} : {}}
                       >
@@ -194,6 +207,14 @@ function CreateCharacterPage() {
         <div className="app-header__anchor">
           <span className="app-header__anchor__text">Créer un personnage</span>
         </div>
+        <NavSection
+          renderTitle={function (p) { return <h2 {...p}></h2>; }}
+          action={
+            <a className="button button--primary button--size-lg" onClick={function(){ window.location.href="/home"; }}>
+              Retour
+            </a>
+          }
+        />
       </header>
 
       <div className="app-container">
@@ -267,7 +288,7 @@ function CreateCharacterPage() {
                   <div className="form-row submit-row">
                     <button
                       type="submit"
-                      className="button button--primary button--size-lg"
+                      className="button1 button--secondary button--size-lg"
                     >
                       Créer
                     </button>
@@ -334,7 +355,7 @@ style.innerHTML = `
   gap: 0.3rem;
 }
 
-.button {
+.button1 {
   width: 100%;
   padding: 0.5rem;
   font-size: 0.85rem;
@@ -351,17 +372,17 @@ style.innerHTML = `
   margin: 0 auto;
 }
 
-.button:hover:not(:disabled) {
+.button1:hover:not(:disabled) {
   background-color: var(--colors-bg--400);
 }
 
-.button.selected {
-  background-color: var(--colors-primary--500);
+.button1.selected {
+  background-color: var(--colors-secondary--500);
   color: white;
-  border-color: var(--colors-primary--500);
+  border-color: var(--colors-secondary--500);
 }
 
-.button:disabled {
+.button1:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -376,7 +397,7 @@ style.innerHTML = `
   .domaines-grid {
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   }
-  .button { font-size: 0.8rem; padding: 0.4rem; }
+  .button1 { font-size: 0.8rem; padding: 0.4rem; }
 }
 
 /* Formulaire */
@@ -419,13 +440,13 @@ style.innerHTML = `
   justify-content: flex-end;
 }
 
-.button.button--primary {
+.button1.button--secondary {
   background-color: #007bff;
   color: white;
   border-color: #007bff;
 }
 
-.button.button--primary:hover {
+.button1.button--secondary:hover {
   background-color: #0056b3;
   border-color: #0056b3;
 }
@@ -435,14 +456,14 @@ style.innerHTML = `
   .domaines-grid {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   }
-  .button {
+  .button1 {
     font-size: 0.8rem;
     padding: 0.35rem 0.5rem;
   }
 }
 
 /* Bouton submit personnalisé */
-.submit-row .button {
+.submit-row .button1 {
   width: 15%;
   background-color: #007bff; /* couleur de fond */
   color: white;              /* texte blanc */

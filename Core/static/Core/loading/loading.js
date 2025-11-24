@@ -71,7 +71,7 @@ const DrawLoadingBar = ( values ) => {
 				values.pop(unloadedCharacter);
 				values.unshift(loadedCharacter);
 				RenderBar(values);
-		}, RandomNumber(50, 300));
+		}, RandomNumber(50, 150));
 	});
 };
 

@@ -172,7 +172,7 @@ function App() {
 
         {/* Colonne droite : objectifs / mission */}
         <div className="app-b">
-          <br/><br/>
+          <br/><br/><br/>
           <Pad>
             <TextHeading3 $as="h4">Operation classifié</TextHeading3>
             <TextParagraph1>
