@@ -275,58 +275,27 @@ function MakeIcon(svg) {
   };
 }
 
-function NodeBox({ x, y, name, isTeam }) {
-  const width = isTeam ? 160 : 140;
-  const height = isTeam ? 60 : 50;
+// === ORGCHART SIMPLE (colonnes d'équipes) ===
+function NodeBox({ x, y, name, width, height, fill, stroke }) {
+  const textX = x + width / 6; // centre horizontal exact
+  const textY = y + height / 2; // centre vertical
 
   return (
     <g>
-      <rect
-        x={x}
-        y={y}
-        width={width}
-        height={height}
-        fill={isTeam ? "#e3b04b" : "#2c3e50"}
-        stroke={isTeam ? "#ffeaa7" : "#e8615a"}
-        strokeWidth="3"
-        rx="6"
-        ry="6"
-      />
-
+      <rect x={x} y={y} width={width} height={height} rx={6} ry={6} fill={fill} stroke={stroke} strokeWidth="2" />
       <text
-        x={x + width / 2}
-        y={y + height / 2}
+        x={textX}
+        y={textY}
         textAnchor="middle"
         dominantBaseline="middle"
         style={{
+          fill: "#fff",
           fontFamily: "VT323, monospace",
-          fontSize: isTeam ? "22px" : "20px",
-          letterSpacing: "1px",
-          fill: "white",
+          fontSize: "22px",
+          fontWeight: "700"
         }}
       >
         {name}
-      </text>
-    </g>
-  );
-}
-
-
-// === ORGCHART SIMPLE (colonnes d'équipes) ===
-function NodeBox(props) {
-  var width = props.width || 140;
-  var height = props.height || 48;
-  var rx = 6;
-  var ry = 6;
-  var textX = props.x + width / 2;
-  var textY = props.y + height / 2;
-  return (
-    <g>
-      <rect x={props.x} y={props.y} width={width} height={height} rx={rx} ry={ry}
-            fill={props.fill || "#2c3e50"} stroke={props.stroke || "#fed33f"} strokeWidth="2" />
-      <text x={textX-30} y={textY} textAnchor="middle" dominantBaseline="middle"
-            style={{ fill: "#fff", fontFamily: "VT323, monospace", fontSize: "22px", fontWeight: "700" }}>
-        {props.name}
       </text>
     </g>
   );
