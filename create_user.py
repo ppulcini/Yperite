@@ -2,7 +2,7 @@ import os
 import django
 
 # Préparer Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'monprojet.settings')  # <-- remplace 'monprojet.settings' par ton settings
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Yperite.settings') 
 django.setup()
 
 from django.contrib.auth import get_user_model
