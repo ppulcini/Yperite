@@ -1,76 +1,182 @@
 /** @jsx h */
 const { h, render } = preact;
+const { useState, useEffect } = preactHooks;
 
+/*
+  home.js — affichage :
+  - gauche : membres
+  - centre : OrgChart (scrollable) + en dessous infos du membre sélectionné
+  - droite : objectif/mission
+*/
+
+// === APP PRINCIPALE ===
 function App() {
+  const [membres, setMembres] = useState([]);
+  const [selectedMember, setSelectedMember] = useState(null);
+  const [orgRoot, setOrgRoot] = useState(null);
+
+  useEffect(function () {
+    // Charge équipes + personnages
+    Promise.all([
+      fetch("/api/equipes/").then(function (r) { return r.json(); }),
+      fetch("/api/personnages/").then(function (r) { return r.json(); })
+    ]).then(function (results) {
+      var equipesData = results[0];
+      var membresData = results[1];
+
+      // Normaliser équipes : id en string, children = []
+      var equipes = equipesData.map(function (e, i) {
+        return {
+          id: String(e.id ? e.id : "team-" + i),
+          name: e.name ? e.name : ("Equipe " + (i+1)),
+          children: []
+        };
+      });
+
+      // Construire map par id
+      var teamMap = {};
+      equipes.forEach(function (t) { teamMap[t.id] = t; });
+
+      // Ajouter membres dans leur équipe (on suppose maintenant que django renvoie equipe_id)
+      membresData.forEach(function (m) {
+        var equipeId = (m.equipe_id !== undefined && m.equipe_id !== null) ? String(m.equipe_id) : (m.equipe ? String(m.equipe) : null);
+        if (equipeId && teamMap[equipeId]) {
+          teamMap[equipeId].children.push({
+            id: "m-" + m.id,
+            name: (m.prenom ? m.prenom : "Pers " + m.id)
+          });
+        }
+      });
+
+      // Préparer racine unique (évite superposition)
+      var root = {
+        id: "root",
+        name: "Organisation",
+        children: Object.keys(teamMap).map(function (k) { return teamMap[k]; })
+      };
+
+      // Liste de membres complète pour le panneau gauche / infos
+      var membresList = membresData.map(function (m) {
+        return {
+          id: m.id,
+          nom: m.nom,
+          prenom: m.prenom,
+          age: m.age,
+          equipe: m.equipe,
+          equipe_id: m.equipe_id,
+          background: m.background,
+          competences: m.competences || []
+        };
+      });
+
+      setOrgRoot(root);
+      setMembres(membresList);
+
+    }).catch(function (err) {
+      console.error("Erreur fetch équipes/membres :", err);
+    });
+  }, []);
+
+
   return (
     <div className="app-skeleton">
       <header className="app-header">
         <div className="app-header__anchor">
-          <span className="app-header__anchor__text">Yperite /\ Bienvenu {window.DJANGO.Username}</span>
+          <span className="app-header__anchor__text">
+            Yperite /\ Bienvenu {window.DJANGO && window.DJANGO.Username ? window.DJANGO.Username : ""}
+          </span>
         </div>
         <NavSection
-          renderTitle={(props) => <h2 {...props}></h2>}
+          renderTitle={function (p) { return <h2 {...p}></h2>; }}
           action={
-            <a className="button button--primary button--size-lg"
-              onClick={() => (window.location.href = "/deconnexion")}>
-                Deconnexion
-              </a>
-          }
-        >
-        </NavSection>
-      </header>
-      <div className="app-container">
-        <div className="app-a">
-        <br/><br/><br/>
-        <NavSection
-          renderTitle={(props) => <h2 {...props}>Members</h2>}
-          action={
-            <a
-              className="button button--primary button--size-lg"
-              onClick={() => (window.location.href = "/activation")}
-            >
-              <IconFeedAdd className="button__icon" />
+            <a className="button button--primary button--size-lg" onClick={function(){ window.location.href="/deconnexion"; }}>
+              Deconnexion
             </a>
           }
-        >
-          <ChannelNav
-            activeChannel={{ id: "", name: "Watson" }}
-            channels={FIXTURES.Equipes}
-          />
-        </NavSection>
+        />
+      </header>
+
+      <div className="app-container">
+
+        {/* Colonne gauche : liste membres */}
+        <div className="app-a">
+          <br/><br/><br/>
+          <NavSection
+            renderTitle={function(p){ return <h2 {...p}>Members</h2>; }}
+            action={
+              <a className="button button--primary button--size-lg" onClick={function(){ window.location.href="/activation"; }}>
+                <IconFeedAdd className="button__icon" />
+              </a>
+            }
+          >
+            <ChannelNav
+              channels={membres.map(function(m){ return { id: m.id, name: m.nom, prenom: m.prenom, meta: m }; })}
+              activeChannel={selectedMember || {}}
+              onChannelClick={function(member) { setSelectedMember(member.meta || member); }}
+            />
+          </NavSection>
         </div>
+
+        {/* Colonne centrale : OrgChart + infos membre en dessous */}
         <div className="app-main">
           <div className="channel-feed">
-            <div className="segment-topbar">
-            </div>
+            <div className="segment-topbar"></div>
             <div className="channel-feed__footer">
-            <Pad>
-              <TextHeading3 $as="h4">Structure de l'équipe</TextHeading3>
-              <div
-                className="orgchart-container"
-                style={{
-                  width: "100%",
-                  height: "400px",
-                  overflowX: "auto",
-                  overflowY: "hidden",
-                  background: "transparent",  // pas de fond blanc
-                  padding: 0                 // supprime padding autour
-                }}
-              >
-                <OrgChart data={teamData} />
-              </div>
-            </Pad>
+
+              {/* OrgChart container : scrollable quand large */}
+              <Pad>
+                <TextHeading3 $as="h4">Structure de l'équipe</TextHeading3>
+
+                <div
+                  className="orgchart-wrapper"
+                  style={{
+                    width: "100%",
+                    height: "360px",
+                    overflowX: "auto",
+                    overflowY: "auto",
+                    background: "transparent",
+                    padding: 8,
+                    boxSizing: "border-box"
+                  }}
+                >
+                  {orgRoot ? <OrgChart data={orgRoot} /> : <div>Chargement...</div>}
+                </div>
+              </Pad>
+
+              <br />
+
+              {/* Infos du membre sous l'orgchart */}
+              <Pad>
+                <NavSection renderTitle={function(p){ return <h2 {...p}>Infos du membre</h2>; }}>
+                  { selectedMember ? (
+                    <div>
+                      <p><strong>Nom: </strong>{selectedMember.nom}</p>
+                      <p><strong>Prénom: </strong>{selectedMember.prenom}</p>
+                      <p><strong>Âge: </strong>{selectedMember.age}</p>
+                      <p><strong>Équipe: </strong>{selectedMember.equipe}</p>
+                      <p><strong>Background: </strong>{selectedMember.background}</p>
+                      <p><strong>Compétences:</strong></p>
+                      <ul>
+                        {(selectedMember.competences || []).map(function(c){ return <li key={c.id}>{c.nom}</li>; })}
+                      </ul>
+                    </div>
+                  ) : (
+                    <p>Sélectionnez un membre pour voir ses informations.</p>
+                  )}
+                </NavSection>
+              </Pad>
+
             </div>
           </div>
         </div>
+
+        {/* Colonne droite : objectifs / mission */}
         <div className="app-b">
-          <br/><br/><br/>
+          <br/><br/>
           <Pad>
             <TextHeading3 $as="h4">Operation classifié</TextHeading3>
             <TextParagraph1>
-              En application avec les directives de la citadelle,
-              cette opération a pour but d'e ramener des ressources vitale au bon 
-              fonctionnement de la ville de Yperite'.
+              En application avec les directives de la citadelle, cette opération a pour but de ramener des ressources vitales au bon fonctionnement de la ville de Yperite.
             </TextParagraph1>
             <br/><br/>
             <TextParagraph1>
@@ -83,226 +189,95 @@ function App() {
             </TextParagraph1>
           </Pad>
         </div>
+
       </div>
     </div>
   );
 }
 
+
+// === ICON ===
 const IconFeedAdd = MakeIcon(
   <path d="M24 10h-10v-10h-4v10h-10v4h10v10h4v-10h10z" />
 );
 
-function NavSection({ children, renderTitle, action }) {
+
+// === UI HELPERS (Pad, NavSection, ChannelNav, etc) ===
+function NavSection(props) {
   return (
     <div className="nav-section">
-      <div
-        className="nav-section__header"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between", // titre à gauche, bouton à droite
-        }}
-      >
-        {renderTitle({ className: "nav-section__title" })}
-        {action && action} {/* bouton ici */}
+      <div className="nav-section__header" style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+        {props.renderTitle ? props.renderTitle({ className:"nav-section__title" }) : null}
+        {props.action ? props.action : null}
       </div>
-      <div className="nav-section__body">{children}</div>
+      <div className="nav-section__body">{props.children}</div>
     </div>
   );
 }
 
-function ChannelNav({ activeChannel = null, channels = [] }) {
+function ChannelNav(props) {
+  var channels = props.channels || [];
+  var active = props.activeChannel || {};
+  var onClick = props.onChannelClick || function(){};
   return (
     <ul className="nav">
-      {channels.map((channel) => (
-        <li className="nav__item">
-          <a
-            className={`nav__link ${
-              activeChannel && activeChannel.id === channel.id
-                ? "nav__link--active"
-                : ""
-            }`}
-            href="#"
-          >
-            <ChannelLink {...channel}>{name}</ChannelLink>
-          </a>
-        </li>
-      ))}
+      {channels.map(function(channel){
+        return (
+          <li key={channel.id} className="nav__item">
+            <a href="#" className={"nav__link " + (active.id === channel.id ? "nav__link--active" : "")}
+               onClick={function(e){ e.preventDefault(); onClick(channel); }}>
+              <ChannelLink name={channel.name + " " + channel.prenom} />
+            </a>
+          </li>
+        );
+      })}
     </ul>
   );
 }
 
-function ConversationNav({ activeConversation = null, conversations = [] }) {
+function ChannelLink(props) {
   return (
-    <ul className="nav">
-      {conversations.map((convo) => (
-        <li className="nav__item">
-          <a
-            className={`nav__link ${
-              activeConversation && activeConversation.id === convo.id
-                ? "nav__link--active"
-                : ""
-            }`}
-            href="#"
-          >
-            <ConversationLink conversation={convo} />
-          </a>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function ChannelLink({ icon, name, unread }) {
-  return (
-    <span
-      className={`channel-link ${
-        unread > 0 ? "conversation-link--unread" : ""
-      }`}
-    >
+    <span className="channel-link">
       <span className="channel-link__icon">#</span>
-      <span className="channel-link__element">{name}</span>
-
-      {unread > 0 && (
-        <span className="channel-link__element">
-          <Badge>{unread}</Badge>
-        </span>
-      )}
+      <span className="channel-link__element">{props.name}</span>
     </span>
   );
 }
 
-function ConversationLink({ conversation }) {
+function Badge(props) { return <span className="badge">{props.children}</span>; }
+
+function Pad(props) {
   return (
-    <span
-      className={`conversation-link ${
-        conversation.isOnline ? "conversation-link--online" : ""
-      } ${conversation.unread > 0 ? "conversation-link--unread" : ""}`}
-    >
-      {conversation.members && conversation.members.length > 2 ? (
-        <span className="conversation-link__icon" />
-      ) : (
-        <span className="conversation-link__icon" />
-      )}
-
-      <span className="conversation-link__element">{conversation.name}</span>
-
-      {conversation.unread > 0 && (
-        <span className="conversation-link__element">
-          <Badge>{conversation.unread}</Badge>
-        </span>
-      )}
-    </span>
-  );
-}
-
-function Badge({ children }) {
-  return <span className="badge">{children}</span>;
-}
-
-function Button({
-  children,
-  type = "button",
-  size = "default",
-  variant = "default"
-}) {
-  return (
-    <button
-      className={`button ${variant ? `button--${variant}` : ""} ${
-        size ? `button--size-${size}` : ""
-      }`}
-      type={type}
-    >
-      <span className="button__content">{children}</span>
-    </button>
-  );
-}
-
-function Pad({ children, renderCap = null }) {
-  return (
-    <div className="pad">
-      <div className="pad__body">{children}</div>
+    <div className="pad" style={{ marginBottom: 8 }}>
+      <div className="pad__body">{props.children}</div>
     </div>
-  );
-}
-
-function NavItem({ navItem }) {
-  return (
-    <li className="nav__item">
-      <a
-        className={`nav__link ${navItem.isActive ? "nav__link--active" : ""}`}
-        href="#"
-      >
-        <span className="nav__link__element">{navItem.text}</span>
-        {navItem.notificationCount > 0 && (
-          <span className="nav__link__element">
-            <Badge>{navItem.notificationCount}</Badge>
-          </span>
-        )}
-      </a>
-    </li>
   );
 }
 
 function MakeTextBase(classNameDefault, $asDefault) {
-  return ({ $as = null, children, className }) => {
-    const AsComponent = $as || $asDefault;
+  return function (props) {
+    var As = props.$as || $asDefault;
+    var cls = classNameDefault + (props.className ? " " + props.className : "");
+    return <As className={cls}>{props.children}</As>;
+  };
+}
 
+const TextHeading3 = MakeTextBase("text-heading3", "h3");
+const TextParagraph1 = MakeTextBase("text-paragraph1", "p");
+
+function MakeIcon(svg) {
+  return function IconComp(props) {
     return (
-      <AsComponent className={`${classNameDefault} ${className}`}>
-        {children}
-      </AsComponent>
+      <svg className={props.className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style={{ width: 18, height: 18 }}>
+        {svg}
+      </svg>
     );
   };
 }
 
-const TextHeading1 = MakeTextBase("text-heading1", "h1");
-const TextHeading2 = MakeTextBase("text-heading2", "h2");
-const TextHeading3 = MakeTextBase("text-heading3", "h3");
-const TextHeading4 = MakeTextBase("text-heading4", "h4");
-const TextHeading5 = MakeTextBase("text-heading5", "h5");
-const TextHeading6 = MakeTextBase("text-heading6", "h6");
-const TextParagraph1 = MakeTextBase("text-paragraph1", "p");
-const TextOverline = MakeTextBase("segment-topbar__overline", "span");
-
-function MakeIcon(svg) {
-  return ({ className }) => (
-    <svg
-      className={className}
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-    >
-      {svg}
-    </svg>
-  );
-}
-
-let FIXTURES = { Equipes: [] };
-
-fetch("/api/personnages/")
-  .then((res) => res.json())
-  .then((data) => {
-    FIXTURES = data;
-    console.log(FIXTURES);
-    // tu peux maintenant utiliser FIXTURES.Equipes
-  })
-  .catch((err) => console.error(err));
-
-function NodeBox({ x, y, name }) {
-  const textRef = preactHooks.useRef(null);
-  const [bbox, setBbox] = preactHooks.useState(null);
-
-  preactHooks.useLayoutEffect(() => {
-    if (textRef.current) {
-      setBbox(textRef.current.getBBox());
-    }
-  }, []);
-
-  const paddingX = 12;
-  const paddingY = 8;
-
-  const width  = bbox ? bbox.width + paddingX * 2 : 100;
-  const height = bbox ? bbox.height + paddingY * 2 : 60;
+function NodeBox({ x, y, name, isTeam }) {
+  const width = isTeam ? 160 : 140;
+  const height = isTeam ? 60 : 50;
 
   return (
     <g>
@@ -311,27 +286,23 @@ function NodeBox({ x, y, name }) {
         y={y}
         width={width}
         height={height}
-        fill="var(--colors-bg--300)"
-        stroke="var(--colors-tertiary--500)"
-        strokeWidth="1"
-        rx="3"
-        ry="3"
+        fill={isTeam ? "#e3b04b" : "#2c3e50"}
+        stroke={isTeam ? "#ffeaa7" : "#e8615a"}
+        strokeWidth="3"
+        rx="6"
+        ry="6"
       />
 
       <text
-        ref={textRef}
-        className="app-header__anchor__text"
-        filter="url(#text-glow)"
-        x={x + paddingX}
+        x={x + width / 2}
         y={y + height / 2}
+        textAnchor="middle"
         dominantBaseline="middle"
-        textAnchor="start"
         style={{
-          fontFamily: "var(--fonts-secondary)",
-          fontSize: "1.25rem",
-          letterSpacing: "0.035rem",
-          textTransform: "uppercase",
-          fill: "var(--colors-tertiary--500)"
+          fontFamily: "VT323, monospace",
+          fontSize: isTeam ? "22px" : "20px",
+          letterSpacing: "1px",
+          fill: "white",
         }}
       >
         {name}
@@ -340,117 +311,92 @@ function NodeBox({ x, y, name }) {
   );
 }
 
-function OrgChart({ data }) {
-  const boxHeight = 60;
-  const verticalSpacing = 10;
-  const horizontalSpacing = 20;
-  const positions = [];
 
-  // Calcul des positions (identique à ton code actuel)
-  const computePositions = (node, depth = 0, xOffset = 0) => {
-    if (!node.children || node.children.length === 0) {
-      const nodePos = { ...node, depth, xOffset, width: 1 };
-      positions.push(nodePos);
-      return nodePos;
+// === ORGCHART SIMPLE (colonnes d'équipes) ===
+function NodeBox(props) {
+  var width = props.width || 140;
+  var height = props.height || 48;
+  var rx = 6;
+  var ry = 6;
+  var textX = props.x + width / 2;
+  var textY = props.y + height / 2;
+  return (
+    <g>
+      <rect x={props.x} y={props.y} width={width} height={height} rx={rx} ry={ry}
+            fill={props.fill || "#2c3e50"} stroke={props.stroke || "#fed33f"} strokeWidth="2" />
+      <text x={textX-30} y={textY} textAnchor="middle" dominantBaseline="middle"
+            style={{ fill: "#fff", fontFamily: "VT323, monospace", fontSize: "22px", fontWeight: "700" }}>
+        {props.name}
+      </text>
+    </g>
+  );
+}
+
+function OrgChart(props) {
+  var data = props.data || { id: "root", name: "Organisation", children: [] };
+  var positions = [];
+  var teams = data.children || [];
+
+  for (var ti = 0; ti < teams.length; ti++) {
+    var team = teams[ti];
+    positions.push({ id: team.id, name: team.name, depth: 0, xOffset: ti, isTeam: true });
+    var children = team.children || [];
+    for (var ci = 0; ci < children.length; ci++) {
+      var member = children[ci];
+      positions.push({ id: member.id, name: member.name, depth: ci + 1, xOffset: ti, isTeam: false });
     }
+  }
 
-    let currentX = xOffset;
-    const childPositions = node.children.map((child) => {
-      const childNode = computePositions(child, depth + 1, currentX);
-      currentX += childNode.width;
-      return childNode;
-    });
+  var boxH = 60;
+  var vSpace = 20;
+  var hSpace = 220;
 
-    const subtreeWidth = childPositions.reduce((sum, c) => sum + c.width, 0);
-    const firstChild = childPositions[0];
-    const lastChild = childPositions[childPositions.length - 1];
-    const parentX = (firstChild.xOffset + lastChild.xOffset) / 2;
+  // dimension du SVG
+  var columns = teams.length || 1;
+  var rows = 1;
+  positions.forEach(function(p){ if (p.depth + 1 > rows) rows = p.depth + 1; });
 
-    const nodePos = { ...node, depth, xOffset: parentX, width: subtreeWidth };
-    positions.push(nodePos);
-    return nodePos;
-  };
+  var svgHeight = Math.max(200, rows * (boxH + vSpace) + 20);
+  var totalWidth = (columns - 1) * hSpace + 140; // largeur totale du schéma (boxes + espaces)
 
-  let rootX = 0;
-  data.forEach((node) => {
-    const rootNode = computePositions(node, 0, rootX);
-    rootX += rootNode.width;
-  });
+  // dynamic center
+  var containerWidth = props.containerWidth || 800; // fallback si non fourni
+  var marginX = Math.max(100, (containerWidth - totalWidth) / 2);
 
-  // Calcul de la largeur maximale pour le SVG
-  const svgWidth =
-    positions.reduce(
-      (max, node) => Math.max(max, node.xOffset * (100 + horizontalSpacing) + 100),
-      0
-    );
+  function findPos(id) {
+    for (var i = 0; i < positions.length; i++) if (positions[i].id === id) return positions[i];
+    return null;
+  }
 
   return (
-    <svg width={svgWidth+10} height={positions.length * (boxHeight + verticalSpacing)}>
-      {/* Lignes */}
-      {positions.map((node) =>
-        node.children
-          ? node.children.map((child) => {
-              const childNode = positions.find((p) => p.id === child.id);
-              return (
-                <line
-                  key={`${node.id}-${childNode.id}`}
-                  x1={node.xOffset * (100 + horizontalSpacing) + 50}
-                  y1={node.depth * (boxHeight + verticalSpacing) + boxHeight}
-                  x2={childNode.xOffset * (100 + horizontalSpacing) + 50}
-                  y2={childNode.depth * (boxHeight + verticalSpacing)}
-                  stroke="#888"
-                  strokeWidth="2"
-                />
-              );
-            })
-          : null
-      )}
+    <svg width={Math.max(totalWidth + marginX*2, containerWidth)} height={svgHeight} style={{ display: "block" }}>
+      {/* lignes de connexion */}
+      {positions.map(function (p) {
+        if (!p.isTeam) return null;
+        var teamPos = p;
+        var teamChildren = teams[p.xOffset] && teams[p.xOffset].children ? teams[p.xOffset].children : [];
+        return teamChildren.map(function (child) {
+          var childPos = findPos(child.id);
+          if (!childPos) return null;
+          var teamX = teamPos.xOffset * hSpace + 70 + marginX;
+          var teamY = teamPos.depth * (boxH + vSpace) + boxH;
+          var childX = childPos.xOffset * hSpace + 70 + marginX;
+          var childY = childPos.depth * (boxH + vSpace);
+          var d = "M" + teamX + "," + teamY + " L" + teamX + "," + (teamY + 20) + " L" + childX + "," + (childY - 20) + " L" + childX + "," + childY;
+          return <path key={teamPos.id + "-" + child.id} d={d} stroke="#fed33f" strokeWidth="2" fill="none" />;
+        });
+      })}
 
-      {/* Boîtes NodeBox */}
-      {positions.map((node) => {
-        const x = node.xOffset * (100 + horizontalSpacing);
-        const y = node.depth * (boxHeight + verticalSpacing);
-        return <NodeBox key={node.id} x={x} y={y} name={node.name} />;
+      {/* noeuds */}
+      {positions.map(function (p) {
+        var x = p.xOffset * hSpace + marginX;
+        var y = p.depth * (boxH + vSpace);
+        return <NodeBox key={p.id} x={x} y={y} name={p.name} width={140} height={48} fill={p.isTeam ? "#e8615a" : "#2c3e50"} stroke={p.isTeam ? "#fed33f" : "#e8615a"} />;
       })}
     </svg>
   );
 }
 
-const teamData = [
-  {
-    id: "root",
-    name: "Chef",
-    children: [
-      {
-        id: "alpha",
-        name: "Equipe Alpha",
-        children: [
-          { id: "paul", name: "Paul", children: [{ id: "pnj9", name: "PNJ-9" }, { id: "pnj10", name: "PNJ-10" }] },
-          { id: "keke", name: "Kéké" },
-          { id: "jean", name: "Jean" },
-          { id: "charle", name: "Charle" },
-          { id: "pnj1", name: "PNJ-1" },
-          { id: "pnj2", name: "PNJ-2" }
-        ]
-      },
-      {
-        id: "omega",
-        name: "Equipe Omega",
-        children: [
-          { id: "pnj3", name: "PNJ-3" },
-          { id: "pnj4", name: "PNJ-4" }
-        ]
-      },
-      {
-        id: "bita",
-        name: "Equipe bita",
-        children: [
-          { id: "pnj5", name: "PNJ-5" },
-          { id: "pnj6", name: "PNJ-6" }
-        ]
-      }
-    ]
-  }
-];
 
+// === render ===
 render(<App />, document.getElementById("root"));

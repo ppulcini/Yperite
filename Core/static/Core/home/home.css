@@ -472,6 +472,29 @@
   .button-toolbar {
     display: flex;
   }
+
+/* --- OrgChart Fallout style --- */
+.orgchart-container {
+  background: radial-gradient(ellipse at center, rgba(0,40,20,0.06), transparent 40%);
+}
+
+/* glow global */
+.neon-glow {
+  filter: drop-shadow(0 0 6px rgba(0,255,150,0.25)) drop-shadow(0 0 12px rgba(0,255,120,0.12));
+}
+
+/* Node styles (managed by inline styles too) */
+.channel-feed__footer svg { display: block; }
+
+/* small responsive */
+@media (max-width: 800px) {
+  .orgchart-container { height: 500px; }
+}
+
+/* simple hover */
+.node-hover { cursor: pointer; transform: translateY(-3px); transition: transform .12s ease; }
+
+
   .orgchart-container::-webkit-scrollbar {
     height: 8px;                /* hauteur de la scrollbar horizontale */
   }

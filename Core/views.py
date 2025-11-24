@@ -1,4 +1,5 @@
 import json
+from django.utils.timezone import now
 from django.contrib.auth import login, authenticate, logout
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
@@ -35,7 +36,7 @@ def load(request):
 
 def home(request):
     Username = request.user.username
-    return render(request, "Core/home.html", context={"Username": Username})
+    return render(request, "Core/home.html", context={"Username": Username, "now": now().timestamp()})
 
 @csrf_exempt
 def create_personnage(request):
@@ -81,6 +82,21 @@ def classe_list(request):
     classes = list(EquipesClass.objects.values("name"))
     return JsonResponse(classes, safe=False)
 
-def personnages_list(request):
-    personnages = list(Personnage.objects.values("id", "nom", "prenom", "equipe__name"))
+def equipe_list(request):
+    equipes = list(EquipesClass.objects.values("id", "name"))
+    return JsonResponse(equipes, safe=False)
+
+def personnages(request):
+    personnages = []
+    for p in Personnage.objects.all():
+        personnages.append({
+            "id": p.id,
+            "nom": p.nom,
+            "prenom": p.prenom,
+            "age": p.age,
+            "equipe": p.equipe.name,
+            "equipe_id": p.equipe.id,   # ← IMPORTANT
+            "background": p.background,
+            "competences": list(p.competences.values("id", "nom"))
+        })
     return JsonResponse(personnages, safe=False)

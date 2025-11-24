@@ -40,7 +40,7 @@ function CompetenceSelector({ selected, setSelected }) {
 
   // Grouper par type puis par domaine
   const grouped = competences.reduce((acc, c) => {
-    const type = c["domaine__type_competence_nom"] || "Autres";
+    const type = c["domaine__type_competence__nom"] || "Autres";
     const domaine = c["domaine__nom"] || "Autres";
     if (!acc[type]) acc[type] = {};
     if (!acc[type][domaine]) acc[type][domaine] = [];
@@ -171,13 +171,19 @@ function CreateCharacterPage() {
       const data = await res.json(); // Maintenant safe
       if (data.success) {
         alert(`Personnage créé ! ID: ${data.id}`);
-        window.location.href = "/home/"
+        // Reset du formulaire
+        setName("");
+        setAge("");
+        setPrenom("");
+        setBackground("");
+        setClasse("");
+        setCompetencesSelected([]);
+        window.location.href = "/home";
       } else {
         alert("Erreur lors de la création du personnage");
         console.log(data);
       }
     } catch (error) {
-      console.error("Erreur réseau:", error);
       alert("Erreur réseau : ", error);
     }
   };
@@ -280,62 +286,174 @@ function CreateCharacterPage() {
 // --- CSS ---
 const style = document.createElement("style");
 style.innerHTML = `
+/* Conteneur global des compétences */
+.competence-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 1rem; /* marge autour du container */
+}
+
+.type-competence {
+  border: 1px solid var(--colors-tertiary--500);
+  border-radius: 8px;
+  padding: 1rem;
+  background-color: var(--colors-bg--300); /* garde les couleurs du site */
+  margin-top: 0.5rem; /* marge haute */
+  margin-bottom: 0.5rem; /* marge basse */
+  margin-left: 0.5rem; /* marge gauche */
+  margin-right: 0.5rem; /* marge droite */
+}
+
+.type-competence h4 {
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  color: var(--colors-tertiary--500); /* couleur des titres raccord */
+}
+
 .domaines-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.8rem;
 }
 
 .domaine-block {
   display: flex;
   flex-direction: column;
-  padding: 0.3rem;
-  border-right: 1px solid #555;
-  border-bottom: 1px solid #555;
-  min-width: 0; /* Permet aux contenus de ne pas déborder */
-  overflow: hidden;
+  gap: 0.5rem;
+}
+
+.domaine-block strong {
+  font-size: 0.95rem;
+  color: var(--colors-tertiary--500);
+}
+
+.competence-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
 }
 
 .button {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  border: 1px solid var(--colors-tertiary--500);
   background-color: var(--colors-bg--300);
   color: var(--colors-tertiary--500);
-  border: 1px solid var(--colors-tertiary--500);
-  border-radius: 0.3rem;
-  padding: 0.4rem 0.6rem;
-  font-family: var(--fonts-secondary);
-  font-size: 0.9rem;
   cursor: pointer;
+  text-align: left;
   transition: all 0.2s ease;
-  margin-bottom: 0.25rem;
-  white-space: nowrap; /* Empêche le texte de se casser */
-  text-overflow: ellipsis; /* Si texte trop long, affiche "..." */
-  overflow: hidden; /* Coupe le texte trop long */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0 auto;
 }
 
-/* Media queries */
-@media (max-width: 1200px) {
+.button:hover:not(:disabled) {
+  background-color: var(--colors-bg--400);
+}
+
+.button.selected {
+  background-color: var(--colors-primary--500);
+  color: white;
+  border-color: var(--colors-primary--500);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.counter {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--colors-tertiary--500);
+}
+
+@media(max-width: 600px) {
   .domaines-grid {
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   }
+  .button { font-size: 0.8rem; padding: 0.4rem; }
 }
 
-@media (max-width: 900px) {
-  .domaines-grid {
-    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
-  }
+/* Formulaire */
+.character-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
+/* Ligne de formulaire */
+.form-row {
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0 auto;
+}
+
+.form-row label {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+/* Inputs et textareas */
+.form-row input,
+.form-row select,
+.form-row textarea {
+  padding: 0.5rem;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 0.9rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Bouton submit */
+.submit-row {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.button.button--primary {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.button.button--primary:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+/* Responsive pour petits écrans */
 @media (max-width: 600px) {
   .domaines-grid {
-    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   }
-  
   .button {
     font-size: 0.8rem;
-    padding: 0.3rem 0.4rem;
+    padding: 0.35rem 0.5rem;
   }
 }
 
+/* Bouton submit personnalisé */
+.submit-row .button {
+  width: 15%;
+  background-color: #007bff; /* couleur de fond */
+  color: white;              /* texte blanc */
+  border: 2px solid #0056b3; /* bordure plus marquée */
+  border-radius: 8px;         /* coins arrondis */
+  padding: 0.8rem 1.5rem;     /* padding plus large */
+  font-size: 1rem;            /* texte un peu plus grand */
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
 `;
 document.head.appendChild(style);
 

@@ -1,15 +1,18 @@
 {% load static %}
 <head>
-	<link rel="stylesheet" href="{% static 'Core/home/home.css' %}">
-	<script src="https://unpkg.com/preact@10.7.3/dist/preact.min.js"></script>
-	<script src="https://unpkg.com/preact@10.7.3/hooks/dist/hooks.umd.js"></script>
-	<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-	<script type="text/babel" src="{% static 'Core/home/home.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'Core/home/home.css' %}">
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/preact@10.7.3/dist/preact.min.js"></script>
+  <script src="https://unpkg.com/preact@10.7.3/hooks/dist/hooks.umd.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 </head>
-<div id="root"></div>
+<body>
+  <div id="root"></div>
 
-<script>
+  <script>
     window.DJANGO = {
         Username: "{{ Username }}"
     };
-</script>
+  </script>
+  <script type="text/babel" src="{% static 'Core/home/home.js' %}?v={{ timestamp }}"></script>
+</body>

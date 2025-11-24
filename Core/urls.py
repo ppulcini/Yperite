@@ -13,5 +13,6 @@ urlpatterns = [
     path("api/competences/", views.competences_list, name="competences_list"),
     path("api/classe/", views.classe_list, name="classe_list"),
     path("api/personnage/create/", views.create_personnage, name="create_personnage"),
-    path("api/personnages/", views.personnages_list, name="personnages-list"),
+    path("api/personnages/", views.personnages, name="personnages_list"),
+    path("api/equipes/", views.equipe_list, name="equipe_list"),
 ]

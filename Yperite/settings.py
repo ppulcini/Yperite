@@ -19,7 +19,8 @@ SECRET_KEY = os.environ.get(
     "django-insecure-dev-key"       # fallback pour local seulement
 )
 
-DEBUG = os.environ.get("DEBUG", "False") == "True"
+# DEBUG = os.environ.get("DEBUG", "False") == "True"
+DEBUG = os.environ.get("RAILWAY_PROJECT_NAME") is None  # True si local, False si prod
 
 # Domain Railway auto
 RAILWAY_DOMAIN = os.environ.get("RAILWAY_PUBLIC_DOMAIN")
@@ -91,13 +92,25 @@ WSGI_APPLICATION = "Yperite.wsgi.application"
 # --------------------------
 # Database (Railway + Local)
 # --------------------------
-DATABASES = {
-    "default": dj_database_url.config(
-        default=os.environ.get("DATABASE_URL"),
-        conn_max_age=600,
-        ssl_require=True,
-    )
-}
+if os.environ.get("RAILWAY_PROJECT_NAME"):  # en prod sur Railway
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=os.environ.get("DATABASE_URL"),
+            conn_max_age=600,
+            ssl_require=True
+        )
+    }
+else:  # en local
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "Yperite_dev",
+            "USER": "paul",
+            "PASSWORD": "Meg@C@arlie153",
+            "HOST": "127.0.0.1",
+            "PORT": "5433",
+        }
+    }
 
 # --------------------------
 # Password validators
@@ -121,9 +134,15 @@ USE_TZ = True
 # Static files
 # --------------------------
 STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+if os.environ.get("RAILWAY_PROJECT_NAME"):  # prod
+    STATIC_ROOT = BASE_DIR / "staticfiles"
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+else:  # local
+    STATICFILES_DIRS = [
+        BASE_DIR / "Core" / "static",  # dossier static de ton app Core
+    ]
+    STATIC_ROOT = BASE_DIR / "staticfiles"  # facultatif pour collectstatic en local
 
 # --------------------------
 # Default primary key field type
