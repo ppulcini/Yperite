@@ -13,7 +13,6 @@ class Personnage(models.Model):
     prenom = models.CharField(max_length=100)
     age = models.IntegerField()
     background = models.TextField()
-
     grade = models.CharField(choices=Grades, default='Soldat', max_length=20)
     equipe = models.ForeignKey('EquipesClass', on_delete=models.CASCADE, blank=True, null=True)
     competences = models.ManyToManyField('Competence', blank=True)

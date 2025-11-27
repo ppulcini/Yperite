@@ -14,10 +14,6 @@ function MakeIcon(svg) {
   );
 }
 
-const IconFeedAdd = MakeIcon(
-  <path d="M24 10h-10v-10h-4v10h-10v4h10v10h4v-10h10z" />
-);
-
 // === UI HELPERS (Pad, NavSection, ChannelNav, etc) ===
 function NavSection(props) {
   return (
@@ -142,10 +138,44 @@ function CreateCharacterPage() {
   const [age, setAge] = useState("");
   const [prenom, setPrenom] = useState("");
   const [niveau, setNiveau] = useState(1);
-  const [background, setBackground] = useState("");
+  const [background, setBackground] = useState(
+    localStorage.getItem("backgroundTemp") || ""
+  );
   const [competencesSelected, setCompetencesSelected] = useState([]);
   const [classe, setClasse] = useState("");          // la valeur sélectionnée (ID)
   const [classesOptions, setClassesOptions] = useState([]); // les options à afficher
+  const [loading, setLoading] = useState(false);
+
+// Génération du background
+const generateBackground = async () => {
+  setLoading(true);
+
+  try {
+    // On envoie la valeur actuelle du background
+    const res = await fetch("/api/background/generate/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ background }),
+    });
+
+    // Récupération de la réponse
+    const data = await res.json();
+
+    if (data.background) {
+      setBackground(data.background);                  // Mise à jour du state React
+      localStorage.setItem("backgroundTemp", data.background); // Sauvegarde locale
+    } else {
+      console.error("Aucun background généré :", data);
+      alert("Erreur lors de la génération du background");
+    }
+  } catch (err) {
+    console.error("Erreur fetch background :", err);
+    alert("Erreur réseau lors de la génération du background");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     fetch("/api/classe/")
@@ -156,6 +186,7 @@ function CreateCharacterPage() {
 
   // --- handleSubmit qui crée réellement le personnage ---
   const handleSubmit = async (e) => {
+    localStorage.removeItem("backgroundTemp");
     e.preventDefault();
   
     const payload = {
@@ -265,8 +296,23 @@ function CreateCharacterPage() {
                       id="background"
                       value={background}
                       onInput={(e) => setBackground(e.target.value)}
-                      rows={4}
+                      rows={8}
                     />
+                    <button
+                      type="button"
+                      className="button1 generate"
+                      onClick={generateBackground}
+                      disabled={loading} // désactive le bouton pendant la génération
+                    >
+                      {loading ? (
+                        h("div", null,
+                          h("span", { className: "spinner" }),
+                          "Génération en cours"
+                        )
+                      ) : (
+                        "Manque d'inspiration ? Donne des infos dans le background et génère-en un via IA!"
+                      )}
+                    </button>
                   </div>
 
                   <div className="form-row">
@@ -495,6 +541,22 @@ style.innerHTML = `
   cursor: pointer;
   transition: all 0.2s ease;
 }
+.spinner {
+  display: inline-block;          /* obligatoire pour que l'animation tourne */
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-top-color: #007bff;      /* couleur visible sur fond clair */
+  border-radius: 50%;
+  margin-right: 8px;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 `;
 document.head.appendChild(style);
 

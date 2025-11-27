@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from .models import Competence, Personnage, EquipesClass
 from .forms import connexionForm
+from .apis.ia import generate_background
 
 @csrf_exempt
 def connexion(request):
@@ -109,3 +110,11 @@ def personnages(request):
             "competences": list(p.competences.values("id", "nom"))
         })
     return JsonResponse(personnages, safe=False)
+
+@csrf_exempt
+def genereted_background(request):
+    if request.method == "POST":
+        infos = request.body.decode("utf-8")
+        bg = generate_background(infos)
+        return JsonResponse({"background": bg})
+    return JsonResponse({"error": "Méthode non autorisée"}, status=405)
