@@ -1,7 +1,6 @@
 import os
 from mistralai import Mistral
 from .db_Yperite import get_faction_information_global
-# api_key = os.environ["MISTRAL_API_KEY"]
 model = "mistral-large-latest"
 
 client = Mistral(api_key=os.environ.get("API_KEY_MISTRAL"))
