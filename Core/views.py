@@ -73,8 +73,8 @@ def activation(request):
 
 def competences_list(request):
     competences = list(Competence.objects.values(
-        "id", "nom", "description", "domaine__nom",
-        "competence_mere__nom", "domaine__type_competence__nom"))
+        "id", "nom", "description", "domaine__nom", "competences_meres__id",
+        "competences_meres__nom", "domaine__type_competence__nom"))
     return JsonResponse(competences, safe=False)
 
 def classe_list(request):

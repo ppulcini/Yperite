@@ -190,6 +190,7 @@ def create_competences(apps, schema_editor):
             "nom": "Ambidextrie 2",
             "description": "Vous pouvez utiliser une arme dans chaque main d’une longueur 70 cm et 100 cm.",
             "domaine": domaines["Armes tranchantes"],
+            "double": True,
         },
         {
             "nom": "Armes d’hast",
@@ -205,6 +206,11 @@ def create_competences(apps, schema_editor):
             "nom": "Balayage",
             "description": "Vous pouvez annoncer dans une phrase 'CHOC' à un adversaire en lui donnant un coup dans les jambes, ce dernier tombe au sol. Utilisable 1 fois par demi-journée.",
             "domaine": domaines["Armes tranchantes"],
+        },
+        {
+            "nom": "Balayage",
+            "description": "Vous pouvez annoncer dans une phrase 'CHOC' à un adversaire en lui donnant un coup dans les jambes, ce dernier tombe au sol. Utilisable 1 fois par demi-journée.",
+            "domaine": domaines["Armes contondantes"],
         },
         {
             "nom": "Tranchant",
@@ -235,6 +241,7 @@ def create_competences(apps, schema_editor):
             "nom": "Ambidextrie 2",
             "description": "Vous pouvez utiliser une arme dans chaque main d’une longueur 70 cm et 100 cm.",
             "domaine": domaines["Armes contondantes"],
+            "double": True,
         },
         {
             "nom": "Armes d’hast",
@@ -371,6 +378,11 @@ def create_competences(apps, schema_editor):
             "description": "Vous avez accès à un tableau vous offrant la possibilité de créer vos propres poisons et élixirs.",
             "domaine": domaines["Alchimie"],
         },
+                {
+            "nom": "Secret des potions",
+            "description": "Vous avez accès à un tableau vous offrant la possibilité de créer vos propres potions et élixirs.",
+            "domaine": domaines["Alchimie"],
+        },
         {
             "nom": "Forge légère",
             "description": "Vous savez fabriquer et réparer les armes courtes, longues et les armures légères.",
@@ -405,6 +417,7 @@ def create_competences(apps, schema_editor):
             "nom": "Récolte efficace",
             "description": "Lorsque vous récoltez, vous récupérez le double de votre récolte.",
             "domaine": domaines["Récolte"],
+            "double": False,
         },
         {
             "nom": "Expert en minerais",
@@ -467,7 +480,12 @@ def create_competences(apps, schema_editor):
             "domaine": domaines["Archiviste"],
         },
         {
-            "nom": "Paléographie 1-2",
+            "nom": "Paléographie 1",
+            "description": "Vous étudiez les diverses écritures inconnues de PLAN.ET. Vous avez une partie d’un des plus vieux alphabets en cours d’étude par niveau.",
+            "domaine": domaines["Archiviste"],
+        },
+                {
+            "nom": "Paléographie 2",
             "description": "Vous étudiez les diverses écritures inconnues de PLAN.ET. Vous avez une partie d’un des plus vieux alphabets en cours d’étude par niveau.",
             "domaine": domaines["Archiviste"],
         },
@@ -542,9 +560,10 @@ def create_competences(apps, schema_editor):
             "domaine": domaines["Méditation"],
         },
         {
-            "nom": "Acception",
+            "nom": "Acceptation",
             "description": "Vous permet de récupérer de la SM supplémentaire lors d’un soin ou d’une folie. Une fois par GN.",
             "domaine": domaines["Méditation"],
+            "double": True,
         },
         {
             "nom": "Voir l’invisible",
@@ -612,12 +631,12 @@ def create_competences(apps, schema_editor):
             "domaine": domaines["Technologie avancée"],
         },
         {
-            "nom": "Fabrication de munition magnétique",
+            "nom": "Fabrication de munitions magnétique",
             "description": "Permet de fabriquer des munitions magnétiques. Un livret vous sera fourni.",
             "domaine": domaines["Technologie avancée"],
         },
         {
-            "nom": "Champ magnétique",
+            "nom": "Champs magnétique",
             "description": "Permet d’équiper une structure (hors village et camps) avec des tourelles de défense magnétiques pour se défendre face aux menaces terrestres et aériennes. Une fois par GN.",
             "domaine": domaines["Technologie avancée"],
         },

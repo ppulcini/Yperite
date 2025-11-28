@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('nom', models.CharField(max_length=100)),
                 ('description', models.TextField(blank=True)),
-                ('competence_mere', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='competences_filles', to='Core.competence')),
+                ('competences_mere', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='competences_filles', to='Core.competence')),
             ],
         ),
         migrations.CreateModel(

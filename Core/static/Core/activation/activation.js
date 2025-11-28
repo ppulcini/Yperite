@@ -36,10 +36,25 @@ function CompetenceSelector({ selected, setSelected }) {
       .then(data => setCompetences(data))
       .catch(err => console.error(err));
   }, []);
-
+  
   const toggleCompetence = (id) => {
+    // On récupère l'objet complet de la compétence
+    const competence = competences.find(c => c.id === id);
+    if (!competence) return;
+  
     if (selected.includes(id)) {
-      setSelected(selected.filter(c => c !== id));
+      // --- on désélectionne la compétence ---
+      let newSelected = selected.filter(cId => cId !== id);
+  
+      // --- si c'est une mère, on retire aussi toutes ses filles ---
+      const childrenIds = competences
+        .filter(c => c.competences_meres__id === id)
+        .map(c => c.id);
+  
+      newSelected = newSelected.filter(cId => !childrenIds.includes(cId));
+  
+      setSelected(newSelected);
+  
     } else if (selected.length < 8) {
       setSelected([...selected, id]);
     } else {
@@ -58,39 +73,46 @@ function CompetenceSelector({ selected, setSelected }) {
   }, {});
 
   return (
-    <div className="competence-container">
-      {Object.entries(grouped).map(([type, domaines]) => (
-        <div key={type} className="type-competence">
-          <h4>{type}</h4>
-          <div className="domaines-grid">
-            {Object.entries(domaines).map(([domaine, comps]) => (
-              <div key={domaine} className="domaine-block">
-                <strong>{domaine}</strong>
-                <div className="competence-buttons">
-                  {comps.map(c => {
-                    const isDisabled = c["competence_mere__nom"] && 
-                                       !competences.find(parent => parent.nom === c["competence_mere__nom"] && selected.includes(parent.id));
-                    return (
-                      <button
-                        key={c.id}
-                        type="button"
-                        onClick={() => !isDisabled && toggleCompetence(c.id)}
-                        className={`button1 ${selected.includes(c.id) ? "selected" : ""}`}
-                        disabled={isDisabled}
-                        style={isDisabled ? {opacity: 0.5, cursor: 'not-allowed'} : {}}
-                      >
-                        {c.nom}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
+<div className="competence-container">
+  {Object.entries(grouped).map(([type, domaines]) => (
+    <div key={type} className="type-competence">
+      <h4>{type}</h4>
+      <div className="domaines-grid">
+        {Object.entries(domaines).map(([domaine, comps]) => (
+          <div key={domaine} className="domaine-block">
+            <strong>{domaine}</strong>
+            <div className="competence-buttons">
+              {comps.map(c => {
+
+                // --- NOUVEAU : récupération de l’ID de la compétence mère ---
+                const parentId = c["competences_meres__id"];
+
+                // Désactivée si :
+                // - elle a une compétence mère
+                // - et que cette mère n'est PAS dans selected
+                const isDisabled = parentId && !selected.includes(parentId);
+
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => !isDisabled && toggleCompetence(c.id)}
+                    className={`button1 ${selected.includes(c.id) ? "selected" : ""}`}
+                    disabled={isDisabled}
+                    style={isDisabled ? { opacity: 0.5, cursor: "not-allowed" } : {}}
+                  >
+                    {c.nom}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ))}
-      <p className="counter">Sélectionnées : {selected.length} / 8</p>
+        ))}
+      </div>
     </div>
+  ))}
+  <p className="counter">Sélectionnées : {selected.length} / 8</p>
+</div>
   );
 }
 

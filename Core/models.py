@@ -60,13 +60,12 @@ class Competence(models.Model):
         null=True,
         blank=True,
     )
-    competence_mere = models.ForeignKey(
+    competences_meres = models.ManyToManyField(
         'self',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='competences_filles'
+        symmetrical=False,
+        related_name='competences_filles',
+        blank=True
     )
-
+    double = models.BooleanField(default=False, blank=True)
     def __str__(self):
         return self.nom
