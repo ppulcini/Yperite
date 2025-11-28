@@ -18,7 +18,7 @@ SECRET_KEY = os.environ.get(
     "SECRET_KEY",
     "django-insecure-dev-key"       # fallback pour local seulement
 )
-KEY_API_OPENAI = os.environ.get("API_KEY_MISTRAL")
+MISTRAL_API_KEY = os.environ.get("API_KEY_MISTRAL")
 
 # DEBUG = os.environ.get("DEBUG", "False") == "True"
 DEBUG = os.environ.get("RAILWAY_PROJECT_NAME") is None  # True si local, False si prod
