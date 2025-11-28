@@ -5,7 +5,7 @@ from .db_Yperite import get_faction_information_global
 model = "mistral-large-latest"
 
 client = Mistral(api_key=os.environ.get("API_KEY_MISTRAL"))
-
+print("client ia init", os.environ.get("API_KEY_MISTRAL"))
 def generate_background(demande):
     content = '''Tu doit crée un background de personnage pour un jeu de rôle a l'aide des info fourni par l'utilisateur mais aussi des les infos de l'univers.
     tu ne donnera pas d'autre information en dehors de la reponse pas d'explication n'y rien d'autre.
