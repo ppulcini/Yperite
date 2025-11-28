@@ -1,11 +1,15 @@
 #!/bin/bash
-# start.sh - script de démarrage pour Railway
 
-echo "Réinitialisation de l'app Core..."
 python manage.py migrate Core zero
 
-python manage.py migrate
+# Appliquer les migrations
+python manage.py migrate --noinput
 
+#create user
+python create_user.py
+
+# Collecter les fichiers statiques
 python manage.py collectstatic --noinput
 
-gunicorn myproject.wsgi:application --bind 0.0.0.0:$PORT --timeout 120
+# Démarrer l'application avec Gunicorn (port fourni par Railway)
+gunicorn Yperite.wsgi:application --bind 0.0.0.0:$PORT --timeout 120
