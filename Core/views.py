@@ -13,16 +13,13 @@ def connexion(request):
     if request.method == "POST":
         form = connexionForm(request.POST)
         if form.is_valid():
-            print("form valid")
             user = authenticate(
                 username=form.cleaned_data['Username'],
                 password=form.cleaned_data['Password'],
             )
-            print("user", user)
             if user is not None:
                 login(request, user)
                 return render(request, "Core/loading.html")
-        print("form invalid")
     if request.user.is_authenticated:
         return render(request, "Core/loading.html")
     return render(request, "Core/connexion.html", context={"form": connexionForm()})
@@ -45,7 +42,6 @@ def create_personnage(request):
         return render(request, "Core/activation.html")
     elif request.method == "POST":
         data = json.loads(request.body)
-        print("data", data)
         name = data.get("name")
         age = data.get("age")
         background = data.get("background", "")

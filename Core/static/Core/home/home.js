@@ -380,7 +380,6 @@ function OrgChart(props) {
   var boxH = 60;
   var vSpace = 30;
   var hSpace = 220;
-  console.log(JSON.stringify(teams, null, 2));
   // Chercher le membre qui est Commandant
   var teams = props.data.children || [];
   var commandant = teams
@@ -514,7 +513,6 @@ function OrgChart(props) {
 
         // Déterminer la couleur selon le type / grade
         let fill, stroke;
-        console.log(p); 
         if (p.isRoot) {
           fill = "#fed33f";   // Commandement
           stroke = "#ffffff";
