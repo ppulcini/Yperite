@@ -157,7 +157,7 @@ function App() {
                       <p><strong>Prénom: </strong>{selectedMember.prenom}</p>
                       <p><strong>Âge: </strong>{selectedMember.age}</p>
                       <p><strong>Équipe: </strong>{selectedMember.equipe}</p>
-                      <p><strong>Background: </strong>{selectedMember.background}</p>
+                      <p style={{ whiteSpace: 'pre-wrap' }}><strong>Background: </strong>{selectedMember.background}</p>
                       <p><strong>Compétences:</strong></p>
                       <ul>
                         {(selectedMember.competences || []).map(function(c){ return <li key={c.id}>{c.nom}</li>; })}
