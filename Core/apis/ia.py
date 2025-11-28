@@ -1,5 +1,6 @@
 import os
 from mistralai import Mistral
+import logging
 from .db_Yperite import get_faction_information_global
 model = "mistral-large-latest"
 
@@ -13,13 +14,17 @@ def generate_background(demande):
     '''
     content += content + "\nVoici les info fournis par l'utilisateur  : " + demande + "\n voici les info de l'univers: " + get_faction_information_global()
     print("demenade user :", demande)
-    chat_response = client.chat.complete(
-        model= model,
-        messages = [
-            {
-                "role": "user",
-                "content": content,
-            },
-        ]
-    )
-    return chat_response.choices[0].message.content
+    try:
+        chat_response = client.chat.complete(
+            model= model,
+            messages = [
+                {
+                    "role": "user",
+                    "content": content,
+                },
+            ]
+        )
+        return chat_response.choices[0].message.content
+    except Exception as e:
+        logging.error(f"Erreur Mistral : {e}")
+        return {"error": str(e)}
