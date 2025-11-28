@@ -1,5 +1,7 @@
 #!/bin/bash
 
+python manage.py migrate Core zero
+
 # Appliquer les migrations
 python manage.py migrate --noinput
 
