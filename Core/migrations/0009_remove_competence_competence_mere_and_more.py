@@ -10,10 +10,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # migrations.RemoveField(
-        #     model_name='competence',
-        #     name='competences_mere',
-        # ),
+        migrations.RemoveField(
+            model_name='competence',
+            name='competences_mere',
+        ),
         migrations.AddField(
             model_name='competence',
             name='competences_meres',
