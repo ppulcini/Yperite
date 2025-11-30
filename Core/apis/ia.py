@@ -14,8 +14,8 @@ def generate_background(demande):
 - **Professions des parents** : Liste au moins 3 options possibles (ex: médecin, ingénieur, artiste clandestin) et choisis-en une au hasard.
 - **Parcours de vie** : Ajoute un événement inattendu (ex: une rencontre avec un mutant, une mission secrète ratée, une découverte interdite).
 - **Tout les infos** fournis sont des exemples de diversité mais n'oublie pas de garder une cohérence avec l'univers de l'Aéropole. Et quecertains personnages peuvent avoir des backgournd avec des passé plus banal ou classique (ex: enfant d'ouvrier devenu artisan, enfant de fonctionnaire devenu policier, etc.
-- **Ne donne pas de choix, crée directement un background complet et détaillé.
-- **Le background doit etre condenser et précis en utilisant 300 mots maximum ( tu ne doit pas afficher ce nombre dans ta reponse ) .
+- **Ne donne pas de choix, crée directement un background complet et détaillé avec une mise en page nom prenom age ect.
+- **Le background doit etre condenser et précis en utilisant 500 mots maximum ( tu ne doit pas afficher ce nombre dans ta reponse ) .
     les Infos qui suivent elles sont factuelles et doivent être respectées pour garder la cohérence de l'univers et de la demande de l'utilisateur
     - Voici les info de l'univers: ''' + get_faction_information_global() + '''\n
     - Voici les info fournis par l'utilisateur  : '''+ demande + '''\n
