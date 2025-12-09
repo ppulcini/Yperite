@@ -408,8 +408,16 @@ function OrgChart(props) {
       isTeam: true
     });
 
+    var children = (team.children || []).slice();
+
+    // 🟩 TRI : Chefs d'abord, soldats ensuite
+    children.sort(function(a, b) {
+      if (a.grade === "Chef" && b.grade !== "Chef") return -1;
+      if (a.grade !== "Chef" && b.grade === "Chef") return 1;
+      return 0;
+    });
+
     // Membres (niveau 1 et plus)
-    var children = team.children || [];
     for (var ci = 0; ci < children.length; ci++) {
       var member = children[ci];
       positions.push({
