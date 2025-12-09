@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from django.forms import ValidationError
 
 Grades = (
@@ -9,6 +10,13 @@ Grades = (
 
 # Create your models here.
 class Personnage(models.Model):
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        default = None,
+        blank=False,
+        null=True,
+    )
     nom = models.CharField(max_length=100)
     prenom = models.CharField(max_length=100)
     age = models.IntegerField()

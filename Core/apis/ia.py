@@ -3,9 +3,12 @@ from django.conf import settings
 from mistralai import Mistral
 import logging
 from .db_Yperite import get_faction_information_global
+from tenacity import retry, wait_exponential, stop_after_attempt
 model = "mistral-large-latest"
 
 client = Mistral(api_key=settings.MISTRAL_API_KEY)
+
+@retry(wait=wait_exponential(multiplier=1, min=4, max=10), stop=stop_after_attempt(3))
 def generate_background(demande):
     content = '''Crée un background **unique et varié** pour un personnage de l'Aéropole.
 - **Évite les clichés** : Les parents ne sont pas toujours ouvriers ou soldats. Explore aussi mais pas forcement toujours des métiers rares (artisans spécialisés, scientifiques dissidents, membres du Culte, contrebandiers, etc.). Tout en gardant une coherence quand meme avec le metiers ou sttaus fournir par l'utilisateur.

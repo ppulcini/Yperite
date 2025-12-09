@@ -41,6 +41,9 @@ def create_personnage(request):
     if request.method == "GET":
         return render(request, "Core/activation.html")
     elif request.method == "POST":
+        if request.user.is_staff is False:
+            if Personnage.objects.filter(author=request.user).exists():
+                 return JsonResponse({"error": "Un personnages existe deja pour ce compte"}, status=405)
         data = json.loads(request.body)
         name = data.get("name")
         age = data.get("age")
@@ -54,6 +57,7 @@ def create_personnage(request):
         except EquipesClass.DoesNotExist:
             equipe_instance = None
         personnage = Personnage.objects.create(
+            author=request.user,
             nom=name,
             prenom=prenom,
             age=age,

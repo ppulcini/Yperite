@@ -227,12 +227,10 @@ const generateBackground = async () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-  
+
       if (!res.ok) {
-        // La requête a échoué côté serveur (4xx / 5xx)
-        const errorData = await res.text(); // ou res.json() si tu veux
-        console.error("Erreur serveur:", errorData);
-        alert("Erreur lors de la création du personnage");
+        const errorData = await res.json();   // <-- lire le JSON
+        alert("Erreur : " + (errorData.error || "Erreur inconnue"));
         return;
       }
   
@@ -249,7 +247,7 @@ const generateBackground = async () => {
         setCompetencesSelected([]);
         window.location.href = "/home";
       } else {
-        alert("Erreur lors de la création du personnage");
+        alert("Une erreur est survenue");
         console.log(data);
       }
     } catch (error) {
@@ -324,13 +322,13 @@ const generateBackground = async () => {
                       type="button"
                       className="button1 generate"
                       onClick={generateBackground}
-                      disabled={loading} // désactive le bouton pendant la génération
+                      disabled={loading}  // Désactive le bouton pendant la génération
                     >
                       {loading ? (
-                        h("div", null,
-                          h("span", { className: "spinner" }),
-                          "Génération en cours"
-                        )
+                        <div>
+                          <span className="spinner"></span>
+                          Génération en cours...
+                        </div>
                       ) : (
                         "Manque d'inspiration ? Donne des infos dans le background et génère-en un via IA!"
                       )}
