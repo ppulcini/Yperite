@@ -77,7 +77,7 @@ def activation(request):
 
 def competences_list(request):
     competences = list(Competence.objects.values(
-        "id", "nom", "description", "domaine__nom", "competences_meres__id",
+        "id", "nom", "description", "offer", "domaine__nom", "competences_meres__id",
         "competences_meres__nom", "domaine__type_competence__nom"))
     return JsonResponse(competences, safe=False)
 

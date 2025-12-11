@@ -75,5 +75,6 @@ class Competence(models.Model):
         blank=True
     )
     double = models.BooleanField(default=False, blank=True)
+    offer = models.BooleanField(default=False, blank=True)
     def __str__(self):
         return self.nom

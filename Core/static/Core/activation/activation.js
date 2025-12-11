@@ -33,7 +33,17 @@ function CompetenceSelector({ selected, setSelected }) {
   useEffect(() => {
     fetch("/api/competences/")
       .then(res => res.json())
-      .then(data => setCompetences(data))
+      .then(data => {
+        setCompetences(data);
+  
+        // Ajouter automatiquement les compétences offertes
+        const offered = data
+          .filter(c => c.offer === true)
+          .map(c => c.id);
+  
+        // Fusionne sans doublons
+        setSelected(prev => Array.from(new Set([...prev, ...offered])));
+      })
       .catch(err => console.error(err));
   }, []);
   
@@ -43,6 +53,9 @@ function CompetenceSelector({ selected, setSelected }) {
     if (!competence) return;
   
     if (selected.includes(id)) {
+
+      if (competence.offer === true) return;
+
       // --- on désélectionne la compétence ---
       let newSelected = selected.filter(cId => cId !== id);
   
@@ -55,7 +68,7 @@ function CompetenceSelector({ selected, setSelected }) {
   
       setSelected(newSelected);
   
-    } else if (selected.length < 8) {
+    } else if (selected.length -3 < 8) {
       setSelected([...selected, id]);
     } else {
       alert("Vous ne pouvez sélectionner que 8 compétences !");
@@ -86,23 +99,25 @@ function CompetenceSelector({ selected, setSelected }) {
 
                 // --- NOUVEAU : récupération de l’ID de la compétence mère ---
                 const parentId = c["competences_meres__id"];
+                const isOffered = c["offer"] === true;
 
                 // Désactivée si :
                 // - elle a une compétence mère
                 // - et que cette mère n'est PAS dans selected
                 const isDisabled = parentId && !selected.includes(parentId);
-
                 return (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => !isDisabled && toggleCompetence(c.id)}
-                    className={`button1 ${selected.includes(c.id) ? "selected" : ""}`}
-                    disabled={isDisabled}
-                    style={isDisabled ? { opacity: 0.5, cursor: "not-allowed" } : {}}
-                  >
-                    {c.nom}
-                  </button>
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => !isDisabled && !isOffered && toggleCompetence(c.id)}
+                  className={`button1 ${
+                    selected.includes(c.id) || isOffered ? "selected" : ""
+                  }`}
+                  disabled={isDisabled || isOffered}
+                  style={(isDisabled || isOffered) ? { opacity: 0.6, cursor: "not-allowed" } : {}}
+                >
+                  {c.nom} {isOffered ? "⭐" : ""}
+                </button>
                 );
               })}
             </div>
@@ -111,7 +126,7 @@ function CompetenceSelector({ selected, setSelected }) {
       </div>
     </div>
   ))}
-  <p className="counter">Sélectionnées : {selected.length} / 8</p>
+  <p className="counter">Sélectionnées : {selected.length -3 } / 8</p>
 </div>
   );
 }
