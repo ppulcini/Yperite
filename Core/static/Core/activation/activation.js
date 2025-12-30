@@ -260,18 +260,22 @@ const generateBackground = async () => {
     };
   
     try {
+      const res = ""
+      const msg_val
       if (editId != null){
-        const res = await fetch(`/api/personnage/update/${"?edit=" + editId}`, {
+        res = await fetch(`/api/personnage/update/${"?edit=" + editId}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
+        msg_val = "Le personnage a bien été modifié"
       } else {
-        const res = await fetch(`/api/personnage/create/`, {
+        res = await fetch(`/api/personnage/create/`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
+        msg_val = "Le personnage a bien été crée"
       }
 
       if (!res.ok) {
@@ -282,7 +286,7 @@ const generateBackground = async () => {
   
       const data = await res.json(); // Maintenant safe
       if (data.success) {
-        alert(`Personnage créé ! ID: ${data.id}`);
+        alert(msg_val);
         // Reset du formulaire
         setName("");
         setAge("");
