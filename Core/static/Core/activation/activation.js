@@ -183,6 +183,8 @@ function CreateCharacterPage() {
   const [classesOptions, setClassesOptions] = useState([]); // les options à afficher
   const [loading, setLoading] = useState(false);
 
+  const editId = new URLSearchParams(window.location.search).get("edit");
+
 // Génération du background
 const generateBackground = async () => {
   setLoading(true);
@@ -213,6 +215,27 @@ const generateBackground = async () => {
   }
 };
 
+  useEffect(() => {
+    if (!editId) return;
+
+    fetch("/api/personnages/")  // ton endpoint renvoyant tous les persos
+      .then(res => res.json())
+      .then(list => {
+        const perso = list.find(p => String(p.id) === String(editId));
+        if (!perso) return;
+
+        // Pré-remplissage du formulaire
+        setName(perso.nom);
+        setPrenom(perso.prenom);
+        setAge(perso.age);
+        setBackground(perso.background);
+        setNiveau(perso.grade);
+        setClasse(perso.equipe_id !== 0 ? perso.equipe_id : "");
+
+        setCompetencesSelected(perso.competences.map(c => c.id));
+      });
+  }, []);
+
 
   useEffect(() => {
     fetch("/api/classe/")
@@ -237,7 +260,7 @@ const generateBackground = async () => {
     };
   
     try {
-      const res = await fetch("/api/personnage/create/", {
+      const res = await fetch(`/api/personnage/create/${editId ? "?edit=" + editId : ""}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -391,7 +414,7 @@ const generateBackground = async () => {
                       type="submit"
                       className="button1 button--secondary button--size-lg"
                     >
-                      Créer
+                      {editId ? "Modifier" : "Créer"}
                     </button>
                   </div>
                 </form>

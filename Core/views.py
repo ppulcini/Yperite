@@ -37,14 +37,59 @@ def home(request):
     return render(request, "Core/home.html", context={"Username": Username, "now": now().timestamp()})
 
 @csrf_exempt
+def update_personnage(request):
+    if request.method == "GET":
+        return render(request, "Core/activation.html")
+
+    elif request.method == "POST":
+        data = json.loads(request.body)
+
+        # Si on édite un personnage
+        edit_id = request.GET.get("edit")
+        if edit_id:
+            try:
+                personnage = Personnage.objects.get(id=edit_id, author=request.user)
+            except Personnage.DoesNotExist:
+                return JsonResponse({"error": "Vous ne pouvez pas modifier ce personnage"}, status=403)
+
+            personnage.nom = data.get("name")
+            personnage.prenom = data.get("prenom")
+            personnage.age = data.get("age")
+            personnage.background = data.get("background")
+            personnage.grade = data.get("niveau")
+
+            equipe_id = data.get("classe")
+            try:
+                personnage.equipe = EquipesClass.objects.get(id=equipe_id)
+            except:
+                personnage.equipe = None
+
+            # Mise à jour compétences
+            competences_ids = data.get("competences", [])
+            competences = Competence.objects.filter(id__in=competences_ids)
+            personnage.competences.set(competences)
+
+            personnage.save()
+            return JsonResponse({"success": True, "id": personnage.id, "edit": True})
+
+@csrf_exempt
 def create_personnage(request):
     if request.method == "GET":
         return render(request, "Core/activation.html")
     elif request.method == "POST":
+        data = json.loads(request.body)
+        # Si on édite un personnage
+        edit_id = request.GET.get("edit")
+        if edit_id:
+            try:
+                personnage = Personnage.objects.get(id=edit_id, author=request.user)
+            except Personnage.DoesNotExist:
+                return JsonResponse({"error": "Vous ne pouvez pas modifier ce personnage"}, status=403)
+
         if request.user.is_staff is False:
             if Personnage.objects.filter(author=request.user).exists():
                  return JsonResponse({"error": "Un personnages existe deja pour ce compte"}, status=405)
-        data = json.loads(request.body)
+
         name = data.get("name")
         age = data.get("age")
         background = data.get("background", "")
@@ -107,7 +152,8 @@ def personnages(request):
             "equipe_id": equipe_id,   # ← IMPORTANT
             "grade": p.grade,
             "background": p.background,
-            "competences": list(p.competences.values("id", "nom"))
+            "competences": list(p.competences.values("id", "nom")),
+            "author": p.author.username,
         })
     return JsonResponse(personnages, safe=False)
 

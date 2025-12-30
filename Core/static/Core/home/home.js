@@ -63,7 +63,6 @@ function App() {
       // 5️⃣ Récupérer le Commandant (sans équipe)
       const commandant = membresData.find(m => m.grade === "Commandant" || m.Niveau === "Commandant");
       const rootChildren = Object.values(teamMap);
-
   
       // 6️⃣ Préparer racine unique
       const root = {
@@ -82,7 +81,8 @@ function App() {
         equipe_id: m.equipe_id,
         background: m.background,
         competences: m.competences || [],
-        grade: m.grade || m.Niveau
+        grade: m.grade || m.Niveau,
+        author : m.author
       }));
   
       setOrgRoot(root);
@@ -162,6 +162,18 @@ function App() {
                       <ul>
                         {(selectedMember.competences || []).map(function(c){ return <li key={c.id}>{c.nom}</li>; })}
                       </ul>
+                      {window.DJANGO && selectedMember.author == window.DJANGO.Username && (
+                        <button
+                          className="button button--primary"
+                          onClick={() => {
+                            // Redirection vers la page d'édition avec l'ID
+                            window.location.href = `/activation?edit=${selectedMember.id}`;
+                          }}
+                          style={{ marginTop: "12px" }}
+                        >
+                          Modifier mon personnage
+                        </button>
+                      )}
                     </div>
                   ) : (
                     <p>Sélectionnez un membre pour voir ses informations.</p>
