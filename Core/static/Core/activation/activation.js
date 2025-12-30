@@ -285,7 +285,6 @@ const generateBackground = async () => {
       }
   
       const data = await res.json(); // Maintenant safe
-      console.log(data)
       if (data.success) {
         alert(msg_val);
         // Reset du formulaire

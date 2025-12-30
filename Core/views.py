@@ -43,7 +43,6 @@ def update_personnage(request):
 
     elif request.method == "POST":
         data = json.loads(request.body)
-        print("DATA : ", data)
         # Si on édite un personnage
         edit_id = request.GET.get("edit")
         try:
@@ -67,7 +66,6 @@ def update_personnage(request):
         competences_ids = data.get("competences", [])
         competences = Competence.objects.filter(id__in=competences_ids)
         personnage.competences.set(competences)
-        print("PERSONNAGE : ", personnage)
         personnage.save()
         return JsonResponse({"success": True, "id": personnage.id, "edit": True})
 
