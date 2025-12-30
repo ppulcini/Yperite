@@ -266,13 +266,13 @@ const generateBackground = async () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
-
-      } 
-      const res = await fetch(`/api/personnage/create/${editId ? "?edit=" + editId : ""}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      } else {
+        const res = await fetch(`/api/personnage/create/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      }
 
       if (!res.ok) {
         const errorData = await res.json();   // <-- lire le JSON
