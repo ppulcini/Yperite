@@ -260,6 +260,14 @@ const generateBackground = async () => {
     };
   
     try {
+      if (editId != null){
+        const res = await fetch(`/api/personnage/update/${"?edit=" + editId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+      } 
       const res = await fetch(`/api/personnage/create/${editId ? "?edit=" + editId : ""}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
