@@ -260,8 +260,8 @@ const generateBackground = async () => {
     };
   
     try {
-      res = ""
-      msg_val = ""
+      let res = ""
+      let msg_val = ""
       if (editId != null){
         res = await fetch(`/api/personnage/update/${"?edit=" + editId}`, {
           method: "POST",
